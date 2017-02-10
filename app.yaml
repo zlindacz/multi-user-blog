@@ -1,0 +1,32 @@
+#######################################################
+# This is the cofiguration file for the app. It contains
+# info about the application code such as development
+# language used, version identifier, etc.
+# For more info about each component, refer to the
+# corresponding comments.
+#######################################################
+
+
+runtime: python27   # name of the App Engine runtime environment
+api_version: 1  # version of said env, until new one comes out
+threadsafe: true  # app uses concurrent requests (req. for Python 2.7)
+
+# handlers are a list of URL patterns and descriptions
+# of how they should be handled
+handlers:
+  # directory to store static files, such as stylesheets, images, JS
+- url: /static
+  static_dir: static/
+
+  # url is the URL pattern as a regex
+- url: /.*
+  # script specifies the path to the script from the app root dir
+  # using the Web Server Gateway Interface (WSGI)
+  script: blog.app
+  # in this case, all urls are directed to the
+  # app object in the blog module
+
+libraries:
+  # uses the latest jinja2 for templating
+- name: jinja2
+  version: latest

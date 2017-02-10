@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="nav-bar">
+    <p><a href="/blog/newpost">New Post</a></p>
+    <p><a href="/blog">Main Page</a></p>
+    <form class="logout" action="/blog/logout" method="post">
+      <input type="submit" name="" value="Log Out">
+    </form>
+  </div>
+
+  {% if form %}
+    <div class="error">{{error}}</div>
+    {% include "form.html" %}
+  {% else %}
+    {% include "post.html" %}
+  {% endif %}
+{% endblock %}

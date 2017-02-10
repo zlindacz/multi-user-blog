@@ -1,0 +1,14 @@
+{% for blog in blogs %}
+
+  <hr>
+  <div class="post-title-header">
+    <h2 class="post-title">{{blog.key().id()}}</h2>
+    <h2 class="post-title">{{blog.title}}</h2>
+    <h4 class="post-date">{{blog.date}}</h4>
+  </div>
+
+  <div class="post-body">
+    <pre>{{blog.blog}}</pre>
+  </div>
+
+{% endfor %}
