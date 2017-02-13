@@ -51,8 +51,7 @@ class BaseHandler(webapp2.RequestHandler):
 
 class Greet(BaseHandler):
     def get(self):
-        self.write("Welcome to my blog! Signup, Login, or " +
-                    "Go to '/blog' to see top 10 posts.")
+        self.render("greet.html")
 
 class Welcome(BaseHandler):
     def get(self):
@@ -97,11 +96,7 @@ class NewPost(BaseHandler):
 class ShowPost(BaseHandler):
     def get(self, number):
         self.redirect_if_not_logged_in()
-        # post = db.GqlQuery("SELECT * FROM Blog WHERE id=:1", number)
         post = Blog.get_by_id(int(number))
-        # another way to accomplish the above
-        # key = db.Key.from_path('Blog', int(number))
-        # post = db.get(key)
 
         if not post:
             self.error(404)
@@ -177,14 +172,6 @@ class Login(BaseHandler):
             self.render('login.html', error=error)
 
 class Logout(BaseHandler):
-    # I don't like that I could logout using a get request but alas,
-    # that's what the hw required
-    # I also made a button that posts to logout
-    def get(self):
-        self.response.headers.add_header('Set-Cookie',
-                                         'name={0};Path=/'.format(""))
-        self.redirect('/blog/signup')
-
     def post(self):
         self.response.headers.add_header('Set-Cookie',
                                          'name=;Path=/')

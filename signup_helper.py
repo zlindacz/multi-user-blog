@@ -1,6 +1,6 @@
 #######################################################
 # The signup_helper.py module contains the methods that
-# validate forms and creates password digests
+# validate forms and create password digests
 #######################################################
 
 import re
@@ -31,36 +31,3 @@ def secure_str(username, password):
 def validate_credentials(username, password, password_digest):
     h = password_digest.split('|')[1]
     return secure_str(username, password).split('|')[1] == h
-
-
-"""
-# The not-so-secure way, without using secret string and
-# just using username and password and sha256 from hashlib
-
-# def salt_str():
-#     return ''.join(random.choice(string.letters) for i in xrange(5))
-
-# This one won't work because it relies on random
-# def secure_str(username, password, salt=None):
-#     if not salt:
-#         salt = salt_str()
-#     h = hashlib.sha256(username+password+salt).hexdigest()
-#     return "{0}|{1}".format(username, h)
-
-# def secure_str(username, password):
-#     h = hashlib.sha256(username+password).hexdigest()
-#     return "{0}|{1}".format(username, h)
-
-# def validate_credentials(username, password, password_digest):
-#     h = password_digest.split('|')[1]
-#     return secure_str(username, password).split('|')[1] == h
-"""
-
-"""
-# testing regex for validating signup info
-
-# print validate_email('linda@g.co')
-# print validate_email('lindag.co')
-# print validate_email('linda@g.@co')     # not very rigorous
-# print validate_email('')
-"""
