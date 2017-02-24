@@ -1,0 +1,10 @@
+html {
+  /* photo by Simson Petrol from unsplash.com */
+  /*background: url("http://res.cloudinary.com/zlindacz/image/upload/c_scale,w_1500/v1487958890/simson-petrol-110900_yy8u0z.jpg") no-repeat center center fixed;*/
+  background: url("http://res.cloudinary.com/zlindacz/image/upload/c_scale,w_1500/v1487959366/simson-petrol-110900_yy8u0z.jpg") no-repeat center center fixed;
+  background-size: cover;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  position: relative;
+}

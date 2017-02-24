@@ -157,16 +157,15 @@ class Login(BaseHandler):
         username = self.request.get("username")
         password = self.request.get("password")
         user = User.gql("WHERE username=:1", username).get()
-        valid_password = signup_helper.validate_credentials(username,
-                                                  password,
-                                                  user.password_digest)
-
         cookie = signup_helper.secure_str(username, password)
-        if user and valid_password:
-            self.response.headers.add_header('Set-Cookie',
-                                             'name={0};Path=/'
-                                             .format(cookie))
-            self.redirect('/blog/welcome')
+        if user:
+            if signup_helper.validate_credentials(username,
+                                                  password,
+                                                  user.password_digest):
+                self.response.headers.add_header('Set-Cookie',
+                                                 'name={0};Path=/'
+                                                 .format(cookie))
+                self.redirect('/blog/welcome')
         else:
             error = "Invalid Login"
             self.render('login.html', error=error)
