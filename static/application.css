@@ -30,44 +30,14 @@ textarea {
   width: 510px;
 }
 
-.nav-bar {
-  display: flex;
-  justify-content: space-between;
-}
-
-.blog-title {
-  text-align: center;
-  font-size: 44px;
-  font-weight: bold;
-  margin: 20px;
-}
-
-.post-title-header {
-  margin: 20px auto;
-  padding-top: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  border-bottom: 2px solid black;
-}
-
-.post-title, .new-post-title {
-  font-size: 25px;
-  font-weight: bold;
-}
-
-.post-date {
-  color: grey;
-}
-
-.new-post-title {
-  margin: 30px 0;
-}
-
-.publish-button {
-  padding: 8px;
-  font-size: 22px;
-  margin: 10px 0;
+html {
+  /* photo by dustin lee from unsplash.com */
+  background: url('http://res.cloudinary.com/zlindacz/image/upload/c_scale,w_1603/v1487825338/dustin-lee-19667_bghgwu.jpg') no-repeat center center fixed;
+  background-size: cover;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  position: relative;
 }
 
 .error {

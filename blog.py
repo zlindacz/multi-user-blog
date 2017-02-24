@@ -119,10 +119,10 @@ class SignUp(BaseHandler):
         no_errors = True
 
         if not signup_helper.validate_username(username):
-            username_error = "That's not a valid username"
+            username_error = "Username must have 3-20 alphanumeric characters"
             no_errors = False
         if not signup_helper.validate_password(password):
-            password_error = "That's not a valid password"
+            password_error = "Password must have 3-20 characters"
             no_errors = False
         if not signup_helper.password_match(password, verify):
             verify_error = "Passwords don't match"
