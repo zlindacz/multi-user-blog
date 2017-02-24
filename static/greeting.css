@@ -7,12 +7,23 @@
 
 html {
   /* photo by dustin lee from unsplash.com */
-  background: url('http://res.cloudinary.com/zlindacz/image/upload/c_scale,w_1500/v1487825338/dustin-lee-19667_bghgwu.jpg') no-repeat center center fixed;
+  background: url("http://res.cloudinary.com/zlindacz/image/upload/c_scale,q_auto,w_1500/v1487825338/dustin-lee-19667_bghgwu.jpg") no-repeat center center fixed;
   background-size: cover;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
   position: relative;
+}
+
+@media (max-width: 1200px) {
+  html {
+    background: url("http://res.cloudinary.com/zlindacz/image/upload/c_scale,q_auto,w_1250/v1487825338/dustin-lee-19667_bghgwu.jpg") no-repeat center center fixed;
+  }
+}
+@media (max-width: 800px) {
+  html {
+    background: url("http://res.cloudinary.com/zlindacz/image/upload/c_scale,q_auto,w_900/v1487825338/dustin-lee-19667_bghgwu.jpg") no-repeat center center fixed;
+  }
 }
 
 .main-content {
@@ -37,7 +48,6 @@ html {
 .blog {
   font-family: 'Alfa Slab One', cursive;
   font-size: 600%;
-  /*color: #2F4B49;*/
   color: #324746;
 }
 
@@ -60,7 +70,8 @@ html {
   font-weight: bold;
   font-family: 'Gloria Hallelujah', cursive;
   font-size: 150%;
-  padding: 0.7em;
+  padding: 0.5em 0.7em;
   margin: 2em;
   border: 5px solid #2F4B49;
+  border-radius: 10%;
 }

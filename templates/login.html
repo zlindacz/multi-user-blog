@@ -1,26 +1,28 @@
 {% extends "creds.html" %}
 
 {% block content %}
-<form method="post">
-  <h2>Login</h2>
-  <table>
-    <tbody>
-      <tr>
-        <label>
-          <td class="label">Username</td>
-          <td><input type="text" name="username"></td>
-        </label>
-      </tr>
-      <tr>
-        <label>
-          <td class="label">Password</td>
-          <td><input type="password" name="password"></td>
-        </label>
-      </tr>
-    </tbody>
-  </table>
-  <div class="error">{{error}}</div>
-  <input type="submit">
-</form>
+<main class="login-main">
+  <form method="post" class="login-form">
+    <h2 class="title">I'm Back!</h2>
+    <table>
+      <tbody>
+        <tr>
+          <label>
+            <td class="login-label">Username</td>
+            <td><input class="login-input-field" type="text" name="username"></td>
+          </label>
+        </tr>
+        <tr>
+          <label>
+            <td class="login-label">Password</td>
+            <td><input class="login-input-field" type="password" name="password"></td>
+          </label>
+        </tr>
+      </tbody>
+    </table>
+    <div class="login-error">{{error}}</div>
+    <input class="login-submit" type="submit" value="Log In">
+  </form>
+</main>
 
 {% endblock %}

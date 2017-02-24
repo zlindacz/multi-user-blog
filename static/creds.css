@@ -1,10 +1,150 @@
+/* color scheme according to http://www.pictaculous.com/
+#93785E
+#608F82
+#E5E8CB
+#2F4B49
+*/
+
 html {
   /* photo by Simson Petrol from unsplash.com */
-  /*background: url("http://res.cloudinary.com/zlindacz/image/upload/c_scale,w_1500/v1487958890/simson-petrol-110900_yy8u0z.jpg") no-repeat center center fixed;*/
-  background: url("http://res.cloudinary.com/zlindacz/image/upload/c_scale,w_1500/v1487959366/simson-petrol-110900_yy8u0z.jpg") no-repeat center center fixed;
+  background: url("http://res.cloudinary.com/zlindacz/image/upload/c_scale,q_auto,o_70,w_1500/v1487959366/simson-petrol-110900_yy8u0z.jpg") no-repeat center center fixed;
   background-size: cover;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
   position: relative;
+  height: 20em;
+}
+
+@media (max-width: 1200px) {
+  html {
+    background: url("http://res.cloudinary.com/zlindacz/image/upload/c_scale,q_auto,o_70,w_1250/v1487959366/simson-petrol-110900_yy8u0z.jpg") no-repeat center center fixed;
+  }
+}
+@media (max-width: 800px) {
+  html {
+    background: url("http://res.cloudinary.com/zlindacz/image/upload/c_scale,q_auto,o_70,w_900/v1487959366/simson-petrol-110900_yy8u0z.jpg") no-repeat center center fixed;
+  }
+}
+
+td {
+  padding-right: 1em;
+}
+
+.title {
+  font-family: 'Gloria Hallelujah', cursive;
+  font-size: 250%;
+  font-weight: bold;
+  color: #E5E8CB;
+  margin-bottom: 1em;
+}
+
+/* Login Form */
+
+.login-main {
+  position: absolute;
+  left: 35%;
+  top: 40%;
+}
+
+.login-form {
+  display: inline-block;
+  text-align: center;
+  background-color: rgba(40, 52, 57, 0.85);
+  height: 28em;
+  width: 30em;
+  padding: 3em;
+  border-radius: 10%;
+}
+
+.login-label {
+  font-family: 'Gloria Hallelujah', cursive;
+  font-size: 180%;
+  color: #E5E8CB;
+}
+
+.login-input-field {
+  font-family: 'Gloria Hallelujah', cursive;
+  padding: 1em;
+  font-size: 120%;
+  border-bottom: 2px solid #E5E8CB;
+  color: #E5E8CB;
+}
+
+.login-submit {
+  font-family: 'Gloria Hallelujah', cursive;
+  font-size: 1.5em;
+  font-weight: bold;
+  padding: 0.8em;
+  margin-top: 1em;
+  border: 5px solid #E5E8CB;
+  border-radius: 10%;
+  color: #E5E8CB;
+}
+
+.login-submit:hover {
+  cursor: pointer;
+}
+
+.login-error {
+  font-size: 1.2em;
+  margin-top: 1em;
+  color: rgba(242, 111, 63, 0.93);
+}
+
+/* Signup Form */
+
+.signup-main {
+  position: absolute;
+  left: 30%;
+  top: 35%;
+}
+
+.signup-form {
+  display: inline-block;
+  text-align: center;
+  background-color: rgba(40, 52, 57, 0.85);
+  height: 35em;
+  width: 40em;
+  padding: 3em;
+  border-radius: 10%;
+}
+
+.signup-table {
+  margin-top: 1em;
+}
+
+.signup-label, .signup-error {
+  font-size: 70%;
+  font-weight: 200;
+  color: #E5E8CB;
+}
+
+.signup-input-field {
+  font-family: 'Gloria Hallelujah', cursive;
+  padding: 0.5em;
+  font-size: 60%;
+  border-bottom: 2px solid #E5E8CB;
+  color: #E5E8CB;
+}
+
+.signup-submit {
+  font-family: 'Gloria Hallelujah', cursive;
+  font-size: 0.7em;
+  font-weight: bold;
+  padding: 0.5em;
+  margin-top: 1em;
+  border: 5px solid #E5E8CB;
+  border-radius: 10%;
+  color: #E5E8CB;
+}
+
+.signup-submit:hover {
+  cursor: pointer;
+}
+
+.signup-error {
+  font-size: 40%;
+  /*margin-top: 0.5em;*/
+  color: rgba(242, 111, 63, 0.93);
 }

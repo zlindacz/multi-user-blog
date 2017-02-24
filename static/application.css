@@ -1,4 +1,5 @@
-body, h1, h2, h3, h4, h5, a, p, img, textarea, div {
+body, h1, h2, h3, h4, h5, a, p, img, textarea, div,
+  input {
   margin: 0;
   padding: 0;
   border: 0;
@@ -32,12 +33,23 @@ textarea {
 
 html {
   /* photo by Lia Leslie from pexels.com */
-  background: url('http://res.cloudinary.com/zlindacz/image/upload/c_scale,w_1500/v1487958139/notebook2_iuhc7h.jpg') no-repeat center center fixed;
+  background: url("http://res.cloudinary.com/zlindacz/image/upload/c_scale,q_auto,w_1500/v1487958139/notebook2_iuhc7h.jpg") no-repeat center center fixed;
   background-size: cover;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
   position: relative;
+}
+
+@media (max-width: 1200px) {
+  html {
+    background: url("http://res.cloudinary.com/zlindacz/image/upload/c_scale,q_auto,w_1250/v1487958139/notebook2_iuhc7h.jpg") no-repeat center center fixed;
+  }
+}
+@media (max-width: 800px) {
+  html {
+    background: url("http://res.cloudinary.com/zlindacz/image/upload/c_scale,q_auto,w_900/v1487958139/notebook2_iuhc7h.jpg") no-repeat center center fixed;
+  }
 }
 
 .error {
