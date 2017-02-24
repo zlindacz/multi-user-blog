@@ -28,12 +28,12 @@ html {
 }
 
 td {
-  padding-right: 1em;
+  padding-right: 0.7em;
 }
 
 .title {
   font-family: 'Gloria Hallelujah', cursive;
-  font-size: 250%;
+  font-size: 225%;
   font-weight: bold;
   color: #E5E8CB;
   margin-bottom: 1em;
@@ -43,7 +43,7 @@ td {
 
 .login-main {
   position: absolute;
-  left: 35%;
+  left: 30%;
   top: 40%;
 }
 
@@ -51,15 +51,15 @@ td {
   display: inline-block;
   text-align: center;
   background-color: rgba(40, 52, 57, 0.85);
-  height: 28em;
-  width: 30em;
-  padding: 3em;
+  height: 25em;
+  width: 26em;
+  padding: 2.5em;
   border-radius: 10%;
 }
 
 .login-label {
   font-family: 'Gloria Hallelujah', cursive;
-  font-size: 180%;
+  font-size: 160%;
   color: #E5E8CB;
 }
 
@@ -96,17 +96,17 @@ td {
 
 .signup-main {
   position: absolute;
-  left: 30%;
-  top: 35%;
+  left: 25%;
+  top: 18%;
 }
 
 .signup-form {
   display: inline-block;
   text-align: center;
   background-color: rgba(40, 52, 57, 0.85);
-  height: 35em;
-  width: 40em;
-  padding: 3em;
+  height: 32em;
+  width: 35em;
+  padding: 2.2em;
   border-radius: 10%;
 }
 
