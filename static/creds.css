@@ -51,7 +51,7 @@ td {
   display: inline-block;
   text-align: center;
   background-color: rgba(40, 52, 57, 0.85);
-  height: 25em;
+  height: 27em;
   width: 26em;
   padding: 2.5em;
   border-radius: 10%;
@@ -92,6 +92,14 @@ td {
   color: rgba(242, 111, 63, 0.93);
 }
 
+.cred-link-signup {
+  /*position: absolute;*/
+  display: block;
+  right: 0;
+  left: 0;
+  padding-bottom: 5px;
+}
+
 /* Signup Form */
 
 .signup-main {
@@ -104,7 +112,7 @@ td {
   display: inline-block;
   text-align: center;
   background-color: rgba(40, 52, 57, 0.85);
-  height: 32em;
+  height: 35em;
   width: 35em;
   padding: 2.2em;
   border-radius: 10%;
@@ -145,6 +153,18 @@ td {
 
 .signup-error {
   font-size: 40%;
-  /*margin-top: 0.5em;*/
   color: rgba(242, 111, 63, 0.93);
+}
+
+.cred-link-login {
+  /*position: absolute;*/
+  display: block;
+  right: 0;
+  left: 0;
+  padding-bottom: 5px;
+  color: black;
+  font-size: 45%;
+  font-weight: 200;
+  font-family: arial;
+
 }
