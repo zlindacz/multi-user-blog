@@ -44,7 +44,7 @@ td {
 .login-main {
   position: absolute;
   left: 30%;
-  top: 40%;
+  top: 20%;
 }
 
 .login-form {
@@ -93,10 +93,7 @@ td {
 }
 
 .cred-link-signup {
-  /*position: absolute;*/
   display: block;
-  right: 0;
-  left: 0;
   padding-bottom: 5px;
 }
 
@@ -105,7 +102,7 @@ td {
 .signup-main {
   position: absolute;
   left: 25%;
-  top: 18%;
+  top: 5%;
 }
 
 .signup-form {
@@ -157,14 +154,10 @@ td {
 }
 
 .cred-link-login {
-  /*position: absolute;*/
   display: block;
-  right: 0;
-  left: 0;
   padding-bottom: 5px;
   color: black;
   font-size: 45%;
   font-weight: 200;
   font-family: arial;
-
 }
