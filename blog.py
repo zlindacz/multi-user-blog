@@ -139,7 +139,7 @@ class SignUp(BaseHandler):
             self.response.headers.add_header('Set-Cookie',
                                              'name={0};Path=/'
                                              .format(cookie))
-            self.redirect('/blog/welcome')
+            self.redirect('/blog')
         else:
             self.render('signup_form.html',
                         username=username,
@@ -165,7 +165,7 @@ class Login(BaseHandler):
                 self.response.headers.add_header('Set-Cookie',
                                                  'name={0};Path=/'
                                                  .format(cookie))
-                self.redirect('/blog/welcome')
+                self.redirect('/blog')
         else:
             error = "Invalid Login"
             self.render('login.html', error=error)
@@ -174,13 +174,12 @@ class Logout(BaseHandler):
     def post(self):
         self.response.headers.add_header('Set-Cookie',
                                          'name=;Path=/')
-        self.redirect('/blog/signup')
+        self.redirect('/blog/login')
 
 app = webapp2.WSGIApplication([('/?', Greet),
                                ('/blog/login', Login),
                                ('/blog/logout', Logout),
                                ('/blog', MainPage),
-                               ('/blog/welcome', Welcome),
                                ('/blog/newpost', NewPost),
                                ('/blog/(\d+)', ShowPost),
                                ('/blog/signup', SignUp)],
