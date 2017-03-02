@@ -1,0 +1,34 @@
+.new-post-form {
+  position: absolute;
+  top: 120%;
+  left: 20%;
+  color: #4a3315;
+}
+
+.new-post-title {
+  margin-bottom: 1em;
+}
+
+.input {
+  margin-bottom: 1em;
+}
+
+.subject, .blog-textarea {
+  background: rgba(37, 35, 33, 0.72);
+  border: none;
+  width: 50vw;
+  padding: 1em;
+  color: #dac5b1;
+}
+
+.publish-button {
+  padding: 8px;
+  font-size: 22px;
+  margin: 10px 0;
+  border: 3px solid #4a3315;
+  border-radius: 3px;
+}
+
+.publish-button:hover {
+  cursor: pointer;
+}

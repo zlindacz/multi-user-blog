@@ -1,14 +1,22 @@
-<form class="" action="/blog/newpost" method="post">
-  <h2 class="new-post-title">new post</h2>
-  <label class="input-field">
-      <p>Subject</p>
-      <input type="text" name="subject" value="{{title}}" size="78">
-  </label>
-  <label for="">
-      <p>Blog</p>
-      <textarea name="content" rows="20" cols="60">{{blog}}</textarea>
-  </label>
-  <div class="">
-    <input type="submit" class="publish-button" value="Publish">
-  </div>
-</form>
+<main class="new-post-form">
+  <form action="/blog/newpost" method="post">
+    <h2 class="new-post-title">New Post</h2>
+    <label for="subject" class="input">
+      <h4>Subject</h4>
+      <input id="subject"
+             class="subject"
+             type="text"
+             name="subject"
+             value="{{title}}">
+    </label>
+    <label for="textarea" class="input">
+      <h4>Blog</h4>
+      <textarea id="textarea"
+                class="blog-textarea"
+                name="content">{{blog}}</textarea>
+    </label>
+    <div class="">
+      <input type="submit" class="publish-button" value="Publish">
+    </div>
+  </form>
+</main>

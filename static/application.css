@@ -1,5 +1,11 @@
-body, h1, h2, h3, h4, h5, a, p, img, textarea, div,
-  input {
+/* color scheme according to http://www.pictaculous.com/
+#93785E
+#608F82
+#E5E8CB
+#2F4B49
+*/
+
+body, h1, h2, h3, h4, h5, a, p, img, textarea, div, input {
   margin: 0;
   padding: 0;
   border: 0;
