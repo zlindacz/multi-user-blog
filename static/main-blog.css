@@ -11,10 +11,9 @@
   font-family: 'Gloria Hallelujah', cursive;
   font-size: 2.5em;
   font-weight: bold;
-  margin-top: 0.5em;
+  margin: 0.5em;
   color: #4a3315;
 }
-
 
 .nav-bar {
   display: flex;
@@ -23,23 +22,42 @@
   font-family: 'Gloria Hallelujah', cursive;
   font-size: 1.2em;
   color: #4a3315;
+  margin: 0 0 1.5em;
 }
 
 .logout-button {
-  color: #fff9c4;
+  color: #da9f66;
+  font-size: 95%;
 }
 
 .logout-button:hover {
   cursor: pointer;
 }
 
+.posts {
+  width: 85vw;
+  margin: 1em auto;
+  font-family: 'Gloria Hallelujah', cursive;
+  color: blanchedalmond;
+}
+
+.a-post {
+  background: rgba(98, 74, 54, 0.60);
+  border-radius: 5px;
+  padding: 1em;
+  margin-bottom: 1em;
+}
+
 .post-title-header {
-  margin: 20px auto;
-  padding-top: 20px;
+  padding: 0.5em;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  border-bottom: 2px solid black;
+  border-bottom: 2px solid rgb(45, 30, 18);
+}
+
+.post-body {
+  padding: 0.5em;
 }
 
 .post-title, .new-post-title {
@@ -47,6 +65,7 @@
   font-weight: bold;
 }
 
-.post-date {
-  /*color: grey;*/
+.error {
+  padding: 1.5em;
+  color: #d92f00;
 }

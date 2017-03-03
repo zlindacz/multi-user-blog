@@ -24,6 +24,17 @@ template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
                                autoescape = True)
 
+# Models
+
+class User(db.Model):
+    username = db.StringProperty(required=True)
+    password_digest = db.StringProperty(required=True)
+
+class Blog(db.Model):
+    title = db.StringProperty(required=True)
+    date = db.DateTimeProperty(auto_now_add=True)
+    blog = db.TextProperty(required=True)
+    author = db.ReferenceProperty(User, collection_name="blogs")
 
 class BaseHandler(webapp2.RequestHandler):
     def write(self, output):
@@ -49,27 +60,17 @@ class BaseHandler(webapp2.RequestHandler):
         if not cookie:
             self.redirect('/blog/login')
 
+    def get_cookie(self, name):
+        raw_cookies = self.request.headers.get("Cookie")
+        for cookie in raw_cookies.split(";"):
+            cookie = cookie.split("=")
+            if cookie[0] == name:
+                return cookie[1]
+        return None
+
 class Greet(BaseHandler):
     def get(self):
         self.render("greet.html")
-
-class Welcome(BaseHandler):
-    def get(self):
-        self.redirect_if_not_logged_in()
-        username = self.request.cookies.get("name").split('|')[0]
-        if signup_helper.validate_username(username):
-            self.write("Welcome, %s!" % username)
-        else:
-            self.redirect("/blog/signup")
-
-class Blog(db.Model):
-    title = db.StringProperty(required=True)
-    date = db.DateTimeProperty(auto_now_add=True)
-    blog = db.TextProperty(required=True)
-
-class User(db.Model):
-    username = db.StringProperty(required=True)
-    password_digest = db.StringProperty(required=True)
 
 class MainPage(BaseHandler):
     def get(self):
@@ -84,9 +85,12 @@ class NewPost(BaseHandler):
     def post(self):
         title = self.request.get("subject")
         blog = self.request.get("content")
+        name_cookie = self.get_cookie("name")
 
-        if title and blog:
-            b = Blog(title=title, blog=blog)
+        if title and blog and name_cookie:
+            username=name_cookie.split("|")[0]
+            author = User.gql("WHERE username=:1", username).get()
+            b = Blog(title=title, blog=blog, author=author)
             b.put()
             self.redirect("/blog/%s" % b.key().id())
         else:
@@ -120,6 +124,9 @@ class SignUp(BaseHandler):
 
         if not signup_helper.validate_username(username):
             username_error = "Username must have 3-20 alphanumeric characters"
+            no_errors = False
+        if User.gql("WHERE username=:1", username).get():
+            username_error = "Username has already been taken."
             no_errors = False
         if not signup_helper.validate_password(password):
             password_error = "Password must have 3-20 characters"

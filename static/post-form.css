@@ -1,7 +1,6 @@
 .new-post-form {
-  position: absolute;
-  top: 120%;
-  left: 20%;
+  margin: 0 auto;
+  width: 50%;
   color: #4a3315;
 }
 

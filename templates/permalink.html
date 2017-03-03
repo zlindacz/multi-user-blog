@@ -1,14 +1,26 @@
 {% extends "_base.html" %}
 
 {% block content %}
-  <hr>
-  <div class="post-title-header">
-    <h2 class="post-title">{{post.key().id()}}</h2>
-    <h2 class="post-title">{{post.title}}</h2>
-    <h4 class="post-date">{{post.date}}</h4>
-  </div>
+  <nav class="nav-bar">
+    <p><a href="/blog">Index</a></p>
+    <p><a href="/blog">Edit</a></p>
+    <p><a href="/blog">Delete</a></p>
+    <form class="logout" action="/blog/logout" method="post">
+      <input class="logout-button" type="submit" name="" value="Log Out">
+    </form>
+  </nav>
 
-  <div class="post-body">
-    <pre>{{post.blog}}</pre>
-  </div>
+  <main class="posts">
+
+    <article class="a-post">
+      <div class="post-title-header">
+        <h2 class="post-title">{{post.title}}</h2>
+        <h4 class="post-date">{{post.date}}</h4>
+      </div>
+
+      <div class="post-body">
+        <section>{{post.blog}}</section>
+      </div>
+    </article>
+  </main>
 {% endblock %}
