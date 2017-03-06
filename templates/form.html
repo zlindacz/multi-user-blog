@@ -1,5 +1,5 @@
 <main class="new-post-form">
-  <form action="/blog/newpost" method="post">
+  <form action="{{action}}" method="post">
     <h2 class="new-post-title">New Post</h2>
     <label for="subject" class="input">
       <h4>Subject</h4>
@@ -15,6 +15,6 @@
                 class="blog-textarea"
                 name="content">{{blog}}</textarea>
     </label>
-    <input type="submit" class="publish-button" value="Publish">
+    <input type="submit" class="publish-button" value="{{submit}}">
   </form>
 </main>

@@ -3,9 +3,9 @@
   {% for blog in blogs %}
   <article class="a-post">
     <div class="post-title-header">
-      <h2 class="post-date">Submitted by: {{blog.author.username}}</h2>
-      <h2 class="post-title">{{blog.title}}</h2>
-      <h4 class="post-date">{{blog.date}}</h4>
+      <h2 class="post-author">Submitted by: {{blog.author.username}}</h2>
+      <h2 class="post-title"><a href="blog/{{blog.key().id()}}">{{blog.title}}</a></h2>
+      <h4 class="post-date">{{blog.date.strftime("%b %d, %Y %X")}}</h4>
     </div>
 
     <div class="post-body">

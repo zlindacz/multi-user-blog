@@ -11,12 +11,15 @@
 # To deploy, run in terminal:
 # `gcloud app deploy <path for yaml file>`
 # Access at `unique-name.appspot.com/path`
+# To see the datastore locally, once the server is up
+# go to: http://localhost:8000/datastore
 #######################################################
 
 import os
 import jinja2
 import webapp2
 import signup_helper
+import re
 
 from google.appengine.ext import db
 
@@ -53,7 +56,13 @@ class BaseHandler(webapp2.RequestHandler):
     def render_front(self, form=False, title="", blog="", error="", blogs=""):
         blogs = db.GqlQuery("SELECT * FROM Blog "
                             "ORDER BY date DESC LIMIT 10")
-        self.render("main.html", form=form, title=title, blog=blog, error=error, blogs=blogs)
+
+        self.render("main.html",
+                    form=form,
+                    title=title,
+                    blog=blog,
+                    error=error,
+                    blogs=blogs)
 
     def redirect_if_not_logged_in(self):
         cookie = self.request.cookies.get("name")
@@ -62,11 +71,19 @@ class BaseHandler(webapp2.RequestHandler):
 
     def get_cookie(self, name):
         raw_cookies = self.request.headers.get("Cookie")
-        for cookie in raw_cookies.split(";"):
-            cookie = cookie.split("=")
-            if cookie[0] == name:
-                return cookie[1]
+        if raw_cookies:
+            for cookie in raw_cookies.split(";"):
+                cookie = cookie.split("=")
+                if cookie[0] == name:
+                    return cookie[1]
         return None
+
+    def get_current_user(self):
+        user = self.get_cookie("name")
+        if user:
+            return user.split("|")[0]
+        else:
+            return None
 
 class Greet(BaseHandler):
     def get(self):
@@ -80,7 +97,10 @@ class MainPage(BaseHandler):
 class NewPost(BaseHandler):
     def get(self):
         self.redirect_if_not_logged_in()
-        self.render_front(form=True)
+        self.render("main.html",
+                    form=True,
+                    action="/blog/newpost",
+                    submit="Publish")
 
     def post(self):
         title = self.request.get("subject")
@@ -105,11 +125,62 @@ class ShowPost(BaseHandler):
         if not post:
             self.error(404)
             return
-        self.render("permalink.html", post=post)
+
+        if self.get_current_user() == post.author.username:
+            self.render("permalink.html", post=post, user_is_author=True)
+        else:
+            self.render("permalink.html", post=post, user_is_author=False)
+
+class EditPost(BaseHandler):
+    def get(self, number):
+        self.redirect_if_not_logged_in()
+        post = Blog.get_by_id(int(number))
+
+        self.render("main.html",
+                    form=True,
+                    action="/blog/%s/edit" % number,
+                    title=post.title,
+                    blog=post.blog,
+                    submit="Update")
+
+    def post(self, number):
+        title = self.request.get("subject")
+        blog = self.request.get("content")
+        post = Blog.get_by_id(int(number))
+
+        if title and blog:
+            post.title = title
+            post.blog = blog
+            post.put()
+            self.redirect("/blog/%s" % number)
+        else:
+            error = "We need both a title and a blog in order to publish this entry."
+            self.render_front(True, title, blog, error)
+
+
+class DeletePost(BaseHandler):
+    def get(self, number):
+        self.redirect_if_not_logged_in()
+        title = self.request.get("subject")
+        blog = self.request.get("content")
+        post = Blog.get_by_id(int(number))
+
+        self.render("permalink.html",
+                    post=post,
+                    user_is_author=True,
+                    modal=True)
+
+    def post(self, number):
+        post = Blog.get_by_id(int(number))
+        post.delete()
+        self.render("permalink.html", post=post, user_is_author=False)
 
 class SignUp(BaseHandler):
     def get(self):
-        self.render('signup_form.html')
+        if self.get_current_user():
+            self.redirect('/blog')
+        else:
+            self.render('signup_form.html')
 
     def post(self):
         username = self.request.get("username")
@@ -158,21 +229,23 @@ class SignUp(BaseHandler):
 
 class Login(BaseHandler):
     def get(self):
-        self.render('login.html')
+        if self.get_current_user():
+            self.redirect('/blog')
+        else:
+            self.render('login.html')
 
     def post(self):
         username = self.request.get("username")
         password = self.request.get("password")
         user = User.gql("WHERE username=:1", username).get()
         cookie = signup_helper.secure_str(username, password)
-        if user:
-            if signup_helper.validate_credentials(username,
+        if user and signup_helper.validate_credentials(username,
                                                   password,
                                                   user.password_digest):
-                self.response.headers.add_header('Set-Cookie',
-                                                 'name={0};Path=/'
-                                                 .format(cookie))
-                self.redirect('/blog')
+            self.response.headers.add_header('Set-Cookie',
+                                             'name={0};Path=/'
+                                             .format(cookie))
+            self.redirect('/blog')
         else:
             error = "Invalid Login"
             self.render('login.html', error=error)
@@ -184,10 +257,12 @@ class Logout(BaseHandler):
         self.redirect('/blog/login')
 
 app = webapp2.WSGIApplication([('/?', Greet),
+                               ('/blog/signup', SignUp),
                                ('/blog/login', Login),
-                               ('/blog/logout', Logout),
                                ('/blog', MainPage),
                                ('/blog/newpost', NewPost),
                                ('/blog/(\d+)', ShowPost),
-                               ('/blog/signup', SignUp)],
+                               ('/blog/(\d+)/edit', EditPost),
+                               ('/blog/(\d+)/delete', DeletePost),
+                               ('/blog/logout', Logout)],
                               debug=True)

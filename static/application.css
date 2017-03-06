@@ -5,17 +5,18 @@
 #2F4B49
 */
 
-body, h1, h2, h3, h4, h5, a, p, img, textarea, div, input {
-  margin: 0;
-  padding: 0;
-  border: 0;
+body, h1, h2, h3, h4, h5, a, p, img, textarea, div,
+  input, aside, section {
+    margin: 0;
+    padding: 0;
+    border: 0;
 
-  font: inherit;
-  text-align: inherit;
-  text-decoration: none;
-  color: inherit;
+    font: inherit;
+    text-align: inherit;
+    text-decoration: none;
+    color: inherit;
 
-  background: transparent;
+    background: transparent;
 }
 
 body {
