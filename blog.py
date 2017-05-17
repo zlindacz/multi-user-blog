@@ -20,6 +20,8 @@ import jinja2
 import webapp2
 import signup_helper
 import re
+import logging
+import time
 
 from google.appengine.ext import db
 
@@ -38,6 +40,34 @@ class Blog(db.Model):
     date = db.DateTimeProperty(auto_now_add=True)
     blog = db.TextProperty(required=True)
     author = db.ReferenceProperty(User, collection_name="blogs")
+
+class Comment(db.Model):
+    body = db.TextProperty(required=True)
+    date = db.DateTimeProperty(auto_now_add=True)
+    author = db.ReferenceProperty(User, collection_name="comments")
+    post = db.ReferenceProperty(Blog, collection_name="comments")
+
+    @classmethod
+    def by_post(cls, post_id):
+        unsorted = filter(lambda x: x.post.key().id() == int(post_id), cls.all())
+        if unsorted == []:
+            return unsorted
+        else:
+            return sorted(unsorted, key=lambda x: x.date, reverse=True)
+
+    @classmethod
+    def by_author(cls, user_id):
+        return filter(lambda x: x.user.key().id() == int(user_id), cls.all())
+
+class Like(db.Model):
+    user = db.ReferenceProperty(User, collection_name="likes")
+    post = db.ReferenceProperty(Blog, collection_name="likes")
+
+    @classmethod
+    def count_likes(cls, post_id):
+        return filter(lambda x: x.post.key().id() == int(post_id), cls.all()).count()
+
+# Rendering hdndler and rendering methods
 
 class BaseHandler(webapp2.RequestHandler):
     def write(self, output):
@@ -85,6 +115,8 @@ class BaseHandler(webapp2.RequestHandler):
         else:
             return None
 
+# handling routes
+
 class Greet(BaseHandler):
     def get(self):
         self.render("greet.html")
@@ -115,21 +147,37 @@ class NewPost(BaseHandler):
             self.redirect("/blog/%s" % b.key().id())
         else:
             error = "We need both a title and a blog in order to publish this entry."
-            self.render_front(True, title, blog, error)
+            self.render("main.html", title=title, blog=blog, error=error, submit="Publish")
 
 class ShowPost(BaseHandler):
     def get(self, number):
         self.redirect_if_not_logged_in()
         post = Blog.get_by_id(int(number))
+        comments = Comment.by_post(int(number))
+        error = self.request.get("error")
+
+        if error:
+            error = "Cannot submit empty comment."
+        else:
+            error = ""
 
         if not post:
             self.error(404)
             return
 
         if self.get_current_user() == post.author.username:
-            self.render("permalink.html", post=post, user_is_author=True)
+            self.render("permalink.html",
+                        post=post,
+                        comments=comments,
+                        error=error,
+                        user_is_author=True)
         else:
-            self.render("permalink.html", post=post, user_is_author=False)
+            self.render("permalink.html",
+                        post=post,
+                        comments=comments,
+                        error=error,
+                        user_is_author=False)
+
 
 class EditPost(BaseHandler):
     def get(self, number):
@@ -157,7 +205,6 @@ class EditPost(BaseHandler):
             error = "We need both a title and a blog in order to publish this entry."
             self.render_front(True, title, blog, error)
 
-
 class DeletePost(BaseHandler):
     def get(self, number):
         self.redirect_if_not_logged_in()
@@ -173,7 +220,24 @@ class DeletePost(BaseHandler):
     def post(self, number):
         post = Blog.get_by_id(int(number))
         post.delete()
+        comments = post.comments
+        for comment in comments:
+            comment.delete()
         self.render("permalink.html", post=post, user_is_author=False)
+
+class NewComment(BaseHandler):
+    def post(self, number):
+        body = self.request.get("content")
+        author = User.gql("WHERE username=:1", self.get_current_user()).get()
+        post = Blog.get_by_id(int(number))
+        comments = Comment.by_post(number)
+        if body == "":
+            self.redirect("/blog/%s?error=True" % number)
+        else:
+            c = Comment(body=body, author=author, post=post)
+            c.put()
+            time.sleep(0.1)
+            self.redirect("/blog/%s" % number)
 
 class SignUp(BaseHandler):
     def get(self):
@@ -264,5 +328,6 @@ app = webapp2.WSGIApplication([('/?', Greet),
                                ('/blog/(\d+)', ShowPost),
                                ('/blog/(\d+)/edit', EditPost),
                                ('/blog/(\d+)/delete', DeletePost),
+                               ('/blog/(\d+)/comment', NewComment),
                                ('/blog/logout', Logout)],
                               debug=True)

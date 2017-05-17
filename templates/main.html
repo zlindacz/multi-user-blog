@@ -10,7 +10,7 @@
       </form>
     </nav>
     <div class="error">{{error}}</div>
-    {% include "form.html" %}
+    {% include "post_form.html" %}
   {% else %}
     <nav class="nav-bar">
       <p><a href="/blog/newpost">New Post</a></p>
@@ -20,4 +20,5 @@
     </nav>
     {% include "posts.html" %}
   {% endif %}
+
 {% endblock %}
