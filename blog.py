@@ -61,14 +61,25 @@ class Comment(db.Model):
         return filter(lambda x: x.user.key().id() == int(user_id), cls.all())
 
 class Like(db.Model):
-    user = db.ReferenceProperty(User, collection_name="likes")
-    post = db.ReferenceProperty(Blog, collection_name="likes")
+    user = db.ReferenceProperty(User, collection_name="likes", indexed=True)
+    post = db.ReferenceProperty(Blog, collection_name="likes", indexed=True)
+    status = db.BooleanProperty(required=True)
 
     @classmethod
     def count_likes(cls, post_id):
-        return filter(lambda x: x.post.key().id() == int(post_id), cls.all()).count()
+        all_votes = filter(lambda x: x.post.key().id() == int(post_id), cls.all())
+        likes = filter(lambda x: x.status == True, all_votes)
+        total_score = len(likes) - (len(all_votes) - len(likes))
+        return total_score
 
-# Rendering hdndler and rendering methods
+    def vote_of_post(cls, post_id, user_id):
+        user_vote = filter(lambda x: x.post.key().id() == int(post_id) and x.user.key().id() == int(user_id), cls.all())
+        if user_vote:
+            return user_vote[0].status
+        else:
+            return None
+
+# Rendering handler and rendering methods
 
 class BaseHandler(webapp2.RequestHandler):
     def write(self, output):
@@ -142,10 +153,9 @@ class NewPost(BaseHandler):
     def post(self):
         title = self.request.get("subject")
         blog = self.request.get("content")
-        # name_cookie = self.get_cookie("name")
         username = self.get_current_user()
 
-        if title and blog and name_cookie:
+        if title and blog and username:
             author = User.gql("WHERE username=:1", username).get()
             b = Blog(title=title, blog=blog, author=author)
             b.put()
@@ -166,6 +176,14 @@ class ShowPost(BaseHandler):
         comments = Comment.by_post(int(number))
         error = self.request.get("error")
         username = self.get_current_user()
+        votes = Like.count_likes(post.key().id())
+        has_voted_up = ""
+        has_voted_down = ""
+
+        if Like.vote_of_post == True:
+            has_voted_up = "voted"
+        elif Like.vote_of_post == False:
+            has_voted_down = "voted"
 
         if error:
             error = "Cannot submit empty comment."
@@ -182,14 +200,16 @@ class ShowPost(BaseHandler):
                         post=post,
                         comments=comments,
                         error=error,
-                        user_is_author=True)
+                        user_is_author=True,
+                        votes=votes)
         else:
             self.render("permalink.html",
                         username=username,
                         post=post,
                         comments=comments,
                         error=error,
-                        user_is_author=False)
+                        user_is_author=False,
+                        votes=votes)
 
 
 class EditPost(BaseHandler):
@@ -246,6 +266,13 @@ class DeletePost(BaseHandler):
                     username=username,
                     post=post,
                     user_is_author=False)
+
+class NewVote(BaseHandler):
+    def post(self, number):
+        form_type = self.request.get('name')
+        pdb.set_trace()
+
+        redirect("/blog/%s" % post_id)
 
 class NewComment(BaseHandler):
     def post(self, number):
@@ -350,6 +377,7 @@ app = webapp2.WSGIApplication([('/?', Greet),
                                ('/blog/(\d+)', ShowPost),
                                ('/blog/(\d+)/edit', EditPost),
                                ('/blog/(\d+)/delete', DeletePost),
+                               ('/blog/(\d+)/vote', NewVote),
                                ('/blog/(\d+)/comment', NewComment),
                                ('/blog/logout', Logout)],
                               debug=True)

@@ -1,0 +1,15 @@
+<div class="votes-container">
+  <div class="votes">
+    <form class="" action="/blog/{{post.key().id()}}/vote?voted=like" method="post" name"voted_up">
+      <button type="submit" class="vote-button">
+        <i class="fa fa-caret-up fa-4x {{has_voted_up}}"></i>
+      </button>
+    </form>
+    <div class="vote-count">{{votes}}</div>
+    <form class="" action="/blog/{{post.key().id()}}/vote?voted=dislike" method="post" name="voted-down">
+      <button type="submit" class="vote-button">
+        <i class="fa fa-caret-down fa-4x {{has_voted_down}}"></i>
+      </button>
+    </form>
+  </div>
+</div>
