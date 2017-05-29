@@ -1,6 +1,7 @@
 {% extends "_base.html" %}
 
 {% block content %}
+  <h1 class="blog-title"><a href="/blog">Welcome, {{username}}!</a></h1>
   <nav class="nav-bar">
     <p><a href="/blog">Index</a></p>
     {% if user_is_author %}

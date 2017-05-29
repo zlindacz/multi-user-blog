@@ -22,6 +22,7 @@ import signup_helper
 import re
 import logging
 import time
+import pdb
 
 from google.appengine.ext import db
 
@@ -84,6 +85,7 @@ class BaseHandler(webapp2.RequestHandler):
         self.write(self.render_str(template, **kwargs))
 
     def render_front(self, form=False, title="", blog="", error="", blogs=""):
+        username = self.get_current_user()
         blogs = db.GqlQuery("SELECT * FROM Blog "
                             "ORDER BY date DESC LIMIT 10")
 
@@ -92,7 +94,8 @@ class BaseHandler(webapp2.RequestHandler):
                     title=title,
                     blog=blog,
                     error=error,
-                    blogs=blogs)
+                    blogs=blogs,
+                    username=username)
 
     def redirect_if_not_logged_in(self):
         cookie = self.request.cookies.get("name")
@@ -128,26 +131,33 @@ class MainPage(BaseHandler):
 
 class NewPost(BaseHandler):
     def get(self):
+        username = self.get_current_user()
         self.redirect_if_not_logged_in()
         self.render("main.html",
                     form=True,
                     action="/blog/newpost",
-                    submit="Publish")
+                    submit="Publish",
+                    username=username)
 
     def post(self):
         title = self.request.get("subject")
         blog = self.request.get("content")
-        name_cookie = self.get_cookie("name")
+        # name_cookie = self.get_cookie("name")
+        username = self.get_current_user()
 
         if title and blog and name_cookie:
-            username=name_cookie.split("|")[0]
             author = User.gql("WHERE username=:1", username).get()
             b = Blog(title=title, blog=blog, author=author)
             b.put()
             self.redirect("/blog/%s" % b.key().id())
         else:
             error = "We need both a title and a blog in order to publish this entry."
-            self.render("main.html", title=title, blog=blog, error=error, submit="Publish")
+            self.render("main.html",
+                        title=title,
+                        blog=blog,
+                        error=error,
+                        submit="Publish",
+                        username=username)
 
 class ShowPost(BaseHandler):
     def get(self, number):
@@ -155,6 +165,7 @@ class ShowPost(BaseHandler):
         post = Blog.get_by_id(int(number))
         comments = Comment.by_post(int(number))
         error = self.request.get("error")
+        username = self.get_current_user()
 
         if error:
             error = "Cannot submit empty comment."
@@ -167,12 +178,14 @@ class ShowPost(BaseHandler):
 
         if self.get_current_user() == post.author.username:
             self.render("permalink.html",
+                        username=username,
                         post=post,
                         comments=comments,
                         error=error,
                         user_is_author=True)
         else:
             self.render("permalink.html",
+                        username=username,
                         post=post,
                         comments=comments,
                         error=error,
@@ -180,16 +193,19 @@ class ShowPost(BaseHandler):
 
 
 class EditPost(BaseHandler):
+
     def get(self, number):
         self.redirect_if_not_logged_in()
         post = Blog.get_by_id(int(number))
+        username = self.get_current_user()
 
         self.render("main.html",
                     form=True,
                     action="/blog/%s/edit" % number,
                     title=post.title,
                     blog=post.blog,
-                    submit="Update")
+                    submit="Update",
+                    username=username)
 
     def post(self, number):
         title = self.request.get("subject")
@@ -211,8 +227,10 @@ class DeletePost(BaseHandler):
         title = self.request.get("subject")
         blog = self.request.get("content")
         post = Blog.get_by_id(int(number))
+        username = self.get_current_user()
 
         self.render("permalink.html",
+                    username=username,
                     post=post,
                     user_is_author=True,
                     modal=True)
@@ -221,9 +239,13 @@ class DeletePost(BaseHandler):
         post = Blog.get_by_id(int(number))
         post.delete()
         comments = post.comments
+        username = self.get_current_user()
         for comment in comments:
             comment.delete()
-        self.render("permalink.html", post=post, user_is_author=False)
+        self.render("permalink.html",
+                    username=username,
+                    post=post,
+                    user_is_author=False)
 
 class NewComment(BaseHandler):
     def post(self, number):
