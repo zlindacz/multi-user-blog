@@ -1,16 +1,31 @@
-.new-comment-form {
-  width: 50vw;
+.comments {
+  width: 85vw;
   margin: 1em auto;
+  font-family: 'Gloria Hallelujah', cursive;
+  color: #4a3315;
+}
+
+.a-comment {
+  background: rgba(255, 235, 205, 0.6);
+  border-radius: 5px;
+  padding: 1em;
+  margin-bottom: 1em;
+}
+
+.new-comment-form {
+  width: 85vw;
+  margin: 3em auto;
   color: #4a3315;
   font-family: 'Gloria Hallelujah', cursive;
 }
 
 .comment-textarea {
   background-color: blanchedalmond;
-  width: 80%;
+  width: 82%;
   height: 100px;
   margin-top: 1em;
   padding: 1em;
+  border-radius: 5px;
 }
 
 .comment-button {

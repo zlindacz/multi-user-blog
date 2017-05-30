@@ -11,7 +11,7 @@ Todos
 - [x] User can sign up, log in and out
 - [x] User cannot access posts if they're not logged in
 - [x] User can comment on all posts if they're logged in
-- [ ] User can like posts by other authors
+- [x] User can like posts by other authors
 - [ ] Styling
 - [ ] Deploy app to appspot.com
 - [ ] Readme
