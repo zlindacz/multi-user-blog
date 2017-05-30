@@ -20,6 +20,9 @@ import jinja2
 import webapp2
 import signup_helper
 import re
+import logging
+import time
+import pdb
 
 from google.appengine.ext import db
 
@@ -33,11 +36,56 @@ class User(db.Model):
     username = db.StringProperty(required=True)
     password_digest = db.StringProperty(required=True)
 
+    @classmethod
+    def get_by(cls, key, value):
+        return cls.gql("WHERE %s = :1" % key, value).get()
+
 class Blog(db.Model):
     title = db.StringProperty(required=True)
     date = db.DateTimeProperty(auto_now_add=True)
     blog = db.TextProperty(required=True)
     author = db.ReferenceProperty(User, collection_name="blogs")
+
+class Comment(db.Model):
+    body = db.TextProperty(required=True)
+    date = db.DateTimeProperty(auto_now_add=True)
+    author = db.ReferenceProperty(User, collection_name="comments")
+    post = db.ReferenceProperty(Blog, collection_name="comments")
+
+    @classmethod
+    def by_post(cls, post_id):
+        unsorted = filter(lambda x: x.post.key().id() == int(post_id), cls.all())
+        if unsorted == []:
+            return unsorted
+        else:
+            return sorted(unsorted, key=lambda x: x.date, reverse=True)
+
+    @classmethod
+    def by_author(cls, user_id):
+        return filter(lambda x: x.user.key().id() == int(user_id), cls.all())
+
+class Like(db.Model):
+    user = db.ReferenceProperty(User, collection_name="likes", indexed=True)
+    post = db.ReferenceProperty(Blog, collection_name="likes", indexed=True)
+    status = db.BooleanProperty(required=True)
+
+    @classmethod
+    def count_likes(cls, post_id):
+        all_votes = filter(lambda x: x.post.key().id() == int(post_id), cls.all())
+        likes = filter(lambda x: x.status == True, all_votes)
+        total_score = len(likes) - (len(all_votes) - len(likes))
+        return total_score
+
+    @classmethod
+    def vote_of_post(cls, post, user):
+        user_vote = filter(lambda x: x.post.key().id() == post.key().id() and x.user.username == user.username, cls.all())
+        print cls.all()
+        if len(user_vote) > 0:
+            return user_vote[0].status
+        else:
+            return None
+
+# Rendering handler and rendering methods
 
 class BaseHandler(webapp2.RequestHandler):
     def write(self, output):
@@ -54,6 +102,7 @@ class BaseHandler(webapp2.RequestHandler):
         self.write(self.render_str(template, **kwargs))
 
     def render_front(self, form=False, title="", blog="", error="", blogs=""):
+        username = self.get_current_user()
         blogs = db.GqlQuery("SELECT * FROM Blog "
                             "ORDER BY date DESC LIMIT 10")
 
@@ -62,7 +111,8 @@ class BaseHandler(webapp2.RequestHandler):
                     title=title,
                     blog=blog,
                     error=error,
-                    blogs=blogs)
+                    blogs=blogs,
+                    username=username)
 
     def redirect_if_not_logged_in(self):
         cookie = self.request.cookies.get("name")
@@ -85,6 +135,8 @@ class BaseHandler(webapp2.RequestHandler):
         else:
             return None
 
+# handling routes
+
 class Greet(BaseHandler):
     def get(self):
         self.render("greet.html")
@@ -96,52 +148,96 @@ class MainPage(BaseHandler):
 
 class NewPost(BaseHandler):
     def get(self):
+        username = self.get_current_user()
         self.redirect_if_not_logged_in()
         self.render("main.html",
                     form=True,
                     action="/blog/newpost",
-                    submit="Publish")
+                    submit="Publish",
+                    username=username)
 
     def post(self):
         title = self.request.get("subject")
         blog = self.request.get("content")
-        name_cookie = self.get_cookie("name")
+        username = self.get_current_user()
 
-        if title and blog and name_cookie:
-            username=name_cookie.split("|")[0]
+        if title and blog and username:
             author = User.gql("WHERE username=:1", username).get()
             b = Blog(title=title, blog=blog, author=author)
             b.put()
             self.redirect("/blog/%s" % b.key().id())
         else:
             error = "We need both a title and a blog in order to publish this entry."
-            self.render_front(True, title, blog, error)
+            self.render("main.html",
+                        title=title,
+                        blog=blog,
+                        error=error,
+                        submit="Publish",
+                        username=username)
 
 class ShowPost(BaseHandler):
     def get(self, number):
         self.redirect_if_not_logged_in()
         post = Blog.get_by_id(int(number))
+        comments = Comment.by_post(int(number))
+        error = self.request.get("error")
+        username = self.get_current_user()
+        current_user = User.get_by("username", username)
+        votes = Like.count_likes(post.key().id())
+        has_voted_up = ""
+        has_voted_down = ""
+        print User.get_by("username", username)
+
+        if Like.vote_of_post(post, current_user) == True:
+            has_voted_up = "voted"
+        elif Like.vote_of_post(post, current_user) == False:
+            has_voted_down = "voted"
+
+        if error:
+            error = "Cannot submit empty comment."
+        else:
+            error = ""
 
         if not post:
             self.error(404)
             return
 
         if self.get_current_user() == post.author.username:
-            self.render("permalink.html", post=post, user_is_author=True)
+            self.render("permalink.html",
+                        username=username,
+                        post=post,
+                        comments=comments,
+                        error=error,
+                        user_is_author=True,
+                        votes=votes,
+                        has_voted_up="",
+                        has_voted_down="")
         else:
-            self.render("permalink.html", post=post, user_is_author=False)
+            self.render("permalink.html",
+                        username=username,
+                        post=post,
+                        comments=comments,
+                        error=error,
+                        user_is_author=False,
+                        votes=votes,
+                        has_voted_up=has_voted_up,
+                        has_voted_down=has_voted_down)
+
 
 class EditPost(BaseHandler):
+
     def get(self, number):
         self.redirect_if_not_logged_in()
         post = Blog.get_by_id(int(number))
+        username = self.get_current_user()
 
         self.render("main.html",
                     form=True,
                     action="/blog/%s/edit" % number,
                     title=post.title,
                     blog=post.blog,
-                    submit="Update")
+                    submit="Update",
+                    username=username)
 
     def post(self, number):
         title = self.request.get("subject")
@@ -157,15 +253,16 @@ class EditPost(BaseHandler):
             error = "We need both a title and a blog in order to publish this entry."
             self.render_front(True, title, blog, error)
 
-
 class DeletePost(BaseHandler):
     def get(self, number):
         self.redirect_if_not_logged_in()
         title = self.request.get("subject")
         blog = self.request.get("content")
         post = Blog.get_by_id(int(number))
+        username = self.get_current_user()
 
         self.render("permalink.html",
+                    username=username,
                     post=post,
                     user_is_author=True,
                     modal=True)
@@ -173,7 +270,95 @@ class DeletePost(BaseHandler):
     def post(self, number):
         post = Blog.get_by_id(int(number))
         post.delete()
-        self.render("permalink.html", post=post, user_is_author=False)
+        comments = post.comments
+        username = self.get_current_user()
+        for comment in comments:
+            comment.delete()
+        self.render("permalink.html",
+                    username=username,
+                    post=post,
+                    user_is_author=False)
+
+class NewVote(BaseHandler):
+
+    def post(self, number, voted):
+        current_user = User.get_by("username", self.get_current_user())
+        post = Blog.get_by_id(int(number))
+        comments = post.comments
+        votes = Like.count_likes(post.key().id())
+        vote_error = ""
+        has_voted_up = ""
+        has_voted_down = ""
+
+        if post.author.username == current_user.username:
+            vote_error = "You cannot vote on your own post."
+            self.render("permalink.html",
+                        username=current_user.username,
+                        post=post,
+                        comments=comments,
+                        vote_error=vote_error,
+                        user_is_author=True,
+                        votes=votes,
+                        has_voted_up=has_voted_up,
+                        has_voted_down=has_voted_down)
+        else:
+            if voted == "like":
+                if Like.vote_of_post(post, current_user) == True:
+                    vote_error = "Already voted up. Cannot vote twice."
+                    has_voted_up = "voted"
+                elif Like.vote_of_post(post, current_user) == False:
+                    vote = Like.gql("WHERE post=:1 AND user=:2", post, current_user).get()
+                    vote.delete()
+                    time.sleep(0.2)
+                    self.redirect("/blog/%s" % post.key().id())
+                else:
+                    like = Like(user=current_user, post=post, status=True)
+                    like.put()
+                    time.sleep(0.2)
+                    has_voted_up = "voted"
+                    self.redirect("/blog/%s" % post.key().id())
+
+            elif voted == "dislike":
+                if Like.vote_of_post(post, current_user) == True:
+                    vote = Like.gql("WHERE post=:1 AND user=:2", post, current_user).get()
+                    vote.delete()
+                    time.sleep(0.2)
+                    self.redirect("/blog/%s" % post.key().id())
+                elif Like.vote_of_post(post, current_user) == False:
+                    vote_error = "Already voted down. Cannot vote twice."
+                    has_voted_down = "voted"
+                else:
+                    like = Like(user=current_user, post=post, status=False)
+                    like.put()
+                    time.sleep(0.2)
+                    has_voted_down = "voted"
+                    self.redirect("/blog/%s" % post.key().id())
+
+
+            self.render("permalink.html",
+                username=current_user.username,
+                post=post,
+                comments=comments,
+                vote_error=vote_error,
+                user_is_author=False,
+                votes=votes,
+                has_voted_up=has_voted_up,
+                has_voted_down=has_voted_down)
+
+
+class NewComment(BaseHandler):
+    def post(self, number):
+        body = self.request.get("content")
+        author = User.gql("WHERE username=:1", self.get_current_user()).get()
+        post = Blog.get_by_id(int(number))
+        comments = Comment.by_post(number)
+        if body == "":
+            self.redirect("/blog/%s?error=True" % number)
+        else:
+            c = Comment(body=body, author=author, post=post)
+            c.put()
+            time.sleep(0.1)
+            self.redirect("/blog/%s" % number)
 
 class SignUp(BaseHandler):
     def get(self):
@@ -264,5 +449,7 @@ app = webapp2.WSGIApplication([('/?', Greet),
                                ('/blog/(\d+)', ShowPost),
                                ('/blog/(\d+)/edit', EditPost),
                                ('/blog/(\d+)/delete', DeletePost),
+                               ('/blog/(\d+)/vote/(.+)', NewVote),
+                               ('/blog/(\d+)/comment', NewComment),
                                ('/blog/logout', Logout)],
                               debug=True)

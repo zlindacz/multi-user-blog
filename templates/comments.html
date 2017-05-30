@@ -1,0 +1,18 @@
+<main class="comments">
+
+  {% if comments %}
+    {% for comment in comments %}
+      <article class="a-comment">
+        <div class="comment-title-header">
+          <h2 class="comment-author">{{comment.author.username}}</h2>
+          <h4 class="comment-date">{{comment.date.strftime("%b %d, %Y %X")}}</h4>
+        </div>
+
+        <div class="comment-body">
+          <section>{{comment.body}}</section>
+        </div>
+      </article>
+    {% endfor %}
+  {% endif %}
+  
+</main>
