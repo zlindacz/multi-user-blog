@@ -1,0 +1,54 @@
+.show-post {
+  display: flex;
+  width: 85vw;
+  margin: 1em auto;
+  font-family: 'Gloria Hallelujah', cursive;
+  color: blanchedalmond;
+}
+
+.a-post {
+  width: 85%;
+  background: rgba(98, 74, 54, 0.60);
+  border-radius: 5px;
+  padding: 1em;
+  margin-bottom: 1em;
+}
+
+.new-post-form {
+  margin: 0 auto;
+  width: 50%;
+  color: #4a3315;
+}
+
+.new-post-title {
+  margin-bottom: 1em;
+}
+
+.input {
+  margin-bottom: 1em;
+}
+
+.subject, .blog-textarea {
+  background: rgba(37, 35, 33, 0.72);
+  border: none;
+  width: 50vw;
+  padding: 1em;
+  color: #dac5b1;
+}
+
+.publish-button {
+  padding: 8px;
+  font-size: 22px;
+  margin: 10px 0;
+  border: 3px solid #4a3315;
+  border-radius: 3px;
+}
+
+.publish-button:hover {
+  cursor: pointer;
+}
+
+.post-error {
+  padding: 1em 0;
+  color: rgb(77, 19, 4);
+}
