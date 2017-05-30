@@ -36,6 +36,10 @@ class User(db.Model):
     username = db.StringProperty(required=True)
     password_digest = db.StringProperty(required=True)
 
+    @classmethod
+    def get_by(cls, key, value):
+        return cls.gql("WHERE %s = :1" % key, value).get()
+
 class Blog(db.Model):
     title = db.StringProperty(required=True)
     date = db.DateTimeProperty(auto_now_add=True)
@@ -178,13 +182,15 @@ class ShowPost(BaseHandler):
         comments = Comment.by_post(int(number))
         error = self.request.get("error")
         username = self.get_current_user()
+        current_user = User.get_by("username", username)
         votes = Like.count_likes(post.key().id())
         has_voted_up = ""
         has_voted_down = ""
+        print User.get_by("username", username)
 
-        if Like.vote_of_post == True:
+        if Like.vote_of_post(post, current_user) == True:
             has_voted_up = "voted"
-        elif Like.vote_of_post == False:
+        elif Like.vote_of_post(post, current_user) == False:
             has_voted_down = "voted"
 
         if error:
@@ -276,7 +282,7 @@ class DeletePost(BaseHandler):
 class NewVote(BaseHandler):
 
     def post(self, number, voted):
-        current_user = User.gql("WHERE username = :1", self.get_current_user()).get()
+        current_user = User.get_by("username", self.get_current_user())
         post = Blog.get_by_id(int(number))
         comments = post.comments
         votes = Like.count_likes(post.key().id())
