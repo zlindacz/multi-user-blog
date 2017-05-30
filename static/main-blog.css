@@ -39,6 +39,7 @@
   margin: 1em auto;
   font-family: 'Gloria Hallelujah', cursive;
   color: blanchedalmond;
+  /*display: flex;*/
 }
 
 .a-post {

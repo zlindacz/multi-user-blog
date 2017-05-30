@@ -74,7 +74,8 @@ class Like(db.Model):
 
     @classmethod
     def vote_of_post(cls, post, user):
-        user_vote = filter(lambda x: x.post == post and x.user == user, cls.all())
+        user_vote = filter(lambda x: x.post.key().id() == post.key().id() and x.user.username == user.username, cls.all())
+        print cls.all()
         if len(user_vote) > 0:
             return user_vote[0].status
         else:
@@ -279,61 +280,65 @@ class NewVote(BaseHandler):
         post = Blog.get_by_id(int(number))
         comments = post.comments
         votes = Like.count_likes(post.key().id())
-        error = ""
+        vote_error = ""
         has_voted_up = ""
         has_voted_down = ""
 
         if post.author.username == current_user.username:
-            error = "You cannot vote on your own post."
-            # self.render("permalink.html",
-            #             username=current_user.username,
-            #             post=post,
-            #             comments=comments,
-            #             error=error,
-            #             user_is_author=True,
-            #             votes=votes,
-            #             has_voted_up=has_voted_up,
-            #             has_voted_down=has_voted_down)
+            vote_error = "You cannot vote on your own post."
+            self.render("permalink.html",
+                        username=current_user.username,
+                        post=post,
+                        comments=comments,
+                        vote_error=vote_error,
+                        user_is_author=True,
+                        votes=votes,
+                        has_voted_up=has_voted_up,
+                        has_voted_down=has_voted_down)
         else:
             if voted == "like":
                 if Like.vote_of_post(post, current_user) == True:
-                    error = "Already voted up. Cannot vote twice."
+                    vote_error = "Already voted up. Cannot vote twice."
                     has_voted_up = "voted"
                 elif Like.vote_of_post(post, current_user) == False:
-                    vote = Like.get_by_post(post).filter("user=", current_user)
+                    vote = Like.gql("WHERE post=:1 AND user=:2", post, current_user).get()
                     vote.delete()
-                    time.sleep(0.1)
+                    time.sleep(0.2)
+                    self.redirect("/blog/%s" % post.key().id())
                 else:
                     like = Like(user=current_user, post=post, status=True)
                     like.put()
-                    time.sleep(0.1)
+                    time.sleep(0.2)
                     has_voted_up = "voted"
+                    self.redirect("/blog/%s" % post.key().id())
 
             elif voted == "dislike":
                 if Like.vote_of_post(post, current_user) == True:
-                    vote = Like.get_by_post(post).filter("user=", current_user)
+                    vote = Like.gql("WHERE post=:1 AND user=:2", post, current_user).get()
                     vote.delete()
-                    time.sleep(0.1)
+                    time.sleep(0.2)
+                    self.redirect("/blog/%s" % post.key().id())
                 elif Like.vote_of_post(post, current_user) == False:
-                    error = "Already voted down. Cannot vote twice."
+                    vote_error = "Already voted down. Cannot vote twice."
                     has_voted_down = "voted"
                 else:
                     like = Like(user=current_user, post=post, status=False)
                     like.put()
-                    time.sleep(0.1)
+                    time.sleep(0.2)
                     has_voted_down = "voted"
+                    self.redirect("/blog/%s" % post.key().id())
 
 
-            # self.render("permalink.html",
-            #     username=current_user.username,
-            #     post=post,
-            #     comments=comments,
-            #     error=error,
-            #     user_is_author=False,
-            #     votes=votes,
-            #     has_voted_up=has_voted_up,
-            #     has_voted_down=has_voted_down)
-        self.redirect("/blog/%s" % post.key().id())
+            self.render("permalink.html",
+                username=current_user.username,
+                post=post,
+                comments=comments,
+                vote_error=vote_error,
+                user_is_author=False,
+                votes=votes,
+                has_voted_up=has_voted_up,
+                has_voted_down=has_voted_down)
+
 
 class NewComment(BaseHandler):
     def post(self, number):
