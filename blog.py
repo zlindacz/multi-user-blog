@@ -283,7 +283,7 @@ class NewVote(BaseHandler):
         has_voted_up = ""
         has_voted_down = ""
 
-        if post.author == current_user:
+        if post.author.username == current_user.username:
             error = "You cannot vote on your own post."
             # self.render("permalink.html",
             #             username=current_user.username,
@@ -333,7 +333,7 @@ class NewVote(BaseHandler):
             #     votes=votes,
             #     has_voted_up=has_voted_up,
             #     has_voted_down=has_voted_down)
-            self.redirect("/blog/%s" % post.key().id())
+        self.redirect("/blog/%s" % post.key().id())
 
 class NewComment(BaseHandler):
     def post(self, number):
