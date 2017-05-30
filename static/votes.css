@@ -17,8 +17,9 @@
   background-color: transparent;
 }
 
-.vote-count {
-
+.vote-button:hover,
+.vote-button:focus {
+  cursor: pointer;
 }
 
 .vote-error {
