@@ -1,17 +1,17 @@
 <main class="posts">
 
   {% for blog in blogs %}
-  <article class="a-post">
-    <div class="post-title-header">
-      <h2 class="post-author">Submitted by: {{blog.author.username}}</h2>
-      <h2 class="post-title"><a href="blog/{{blog.key().id()}}">{{blog.title}}</a></h2>
-      <h4 class="post-date">{{blog.date.strftime("%b %d, %Y %X")}}</h4>
-    </div>
+    <article class="a-post">
+      <div class="post-title-header">
+        <h2 class="post-author">Submitted by: {{blog.author.username}}</h2>
+        <h2 class="post-title"><a href="blog/{{blog.key().id()}}">{{blog.title}}</a></h2>
+        <h4 class="post-date">{{blog.date.strftime("%b %d, %Y %X")}}</h4>
+      </div>
 
-    <div class="post-body">
-      <section>{{blog.blog}}</section>
-    </div>
-  </article>
+      <div class="post-body">
+        <section>{{blog.blog}}</section>
+      </div>
+    </article>
   {% endfor %}
 
 </main>

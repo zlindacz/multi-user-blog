@@ -39,6 +39,7 @@
   margin: 1em auto;
   font-family: 'Gloria Hallelujah', cursive;
   color: blanchedalmond;
+  /*display: flex;*/
 }
 
 .a-post {
@@ -121,4 +122,14 @@
 
 .delete:hover {
   cursor: pointer
+}
+
+.voted {
+  color: purple;
+}
+
+.vote-button {
+  border: none;
+  padding: 0;
+  background-color: transparent;
 }

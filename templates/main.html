@@ -2,6 +2,7 @@
 
 {% block content %}
 
+  <h1 class="blog-title"><a href="/blog">Welcome, {{username}}!</a></h1>
   {% if form %}
     <nav class="nav-bar">
       <p><a href="/blog">Cancel</a></p>
@@ -10,7 +11,7 @@
       </form>
     </nav>
     <div class="error">{{error}}</div>
-    {% include "form.html" %}
+    {% include "post_form.html" %}
   {% else %}
     <nav class="nav-bar">
       <p><a href="/blog/newpost">New Post</a></p>
@@ -20,4 +21,5 @@
     </nav>
     {% include "posts.html" %}
   {% endif %}
+
 {% endblock %}
