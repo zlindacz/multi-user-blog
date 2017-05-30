@@ -1,20 +1,19 @@
 <main class="new-post-form">
   <form action="{{action}}" method="post">
     <h2 class="new-post-title">New Post</h2>
-    <label for="subject" class="input">
+    <label class="input">
       <h4>Subject</h4>
-      <input id="subject"
-             class="subject"
+      <input class="subject"
              type="text"
              name="subject"
              value="{{title}}">
     </label>
-    <label for="textarea" class="input">
+    <label class="input">
       <h4>Blog</h4>
-      <textarea id="textarea"
-                class="blog-textarea"
+      <textarea class="blog-textarea"
                 name="content">{{blog}}</textarea>
     </label>
+    <div class="post-error">{{error}}</div>
     <input type="submit" class="publish-button" value="{{submit}}">
   </form>
 </main>

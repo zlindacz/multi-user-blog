@@ -22,8 +22,6 @@ body, h1, h2, h3, h4, h5, a, p, img, textarea, div,
 body {
   font-family: sans-serif;
   font-size: 16px;
-  /*padding: 20px;*/
-  /*width: 60vw;*/
   margin: 0 auto;
 }
 
@@ -33,7 +31,6 @@ input {
 }
 
 textarea {
-  border: 1px solid rgb(154, 161, 163);
   height: 300px;
   width: 510px;
 }
@@ -57,8 +54,4 @@ html {
   html {
     background: url("http://res.cloudinary.com/zlindacz/image/upload/c_scale,q_auto,w_900/v1487958139/notebook2_iuhc7h.jpg") no-repeat center center fixed;
   }
-}
-
-.error {
-  color: red;
 }
