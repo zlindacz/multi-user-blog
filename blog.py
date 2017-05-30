@@ -72,9 +72,10 @@ class Like(db.Model):
         total_score = len(likes) - (len(all_votes) - len(likes))
         return total_score
 
-    def vote_of_post(cls, post_id, user_id):
-        user_vote = filter(lambda x: x.post.key().id() == int(post_id) and x.user.key().id() == int(user_id), cls.all())
-        if user_vote:
+    @classmethod
+    def vote_of_post(cls, post, user):
+        user_vote = filter(lambda x: x.post == post and x.user == user, cls.all())
+        if len(user_vote) > 0:
             return user_vote[0].status
         else:
             return None
@@ -201,7 +202,9 @@ class ShowPost(BaseHandler):
                         comments=comments,
                         error=error,
                         user_is_author=True,
-                        votes=votes)
+                        votes=votes,
+                        has_voted_up="",
+                        has_voted_down="")
         else:
             self.render("permalink.html",
                         username=username,
@@ -209,7 +212,9 @@ class ShowPost(BaseHandler):
                         comments=comments,
                         error=error,
                         user_is_author=False,
-                        votes=votes)
+                        votes=votes,
+                        has_voted_up=has_voted_up,
+                        has_voted_down=has_voted_down)
 
 
 class EditPost(BaseHandler):
@@ -268,11 +273,67 @@ class DeletePost(BaseHandler):
                     user_is_author=False)
 
 class NewVote(BaseHandler):
-    def post(self, number):
-        form_type = self.request.get('name')
-        pdb.set_trace()
 
-        redirect("/blog/%s" % post_id)
+    def post(self, number, voted):
+        current_user = User.gql("WHERE username = :1", self.get_current_user()).get()
+        post = Blog.get_by_id(int(number))
+        comments = post.comments
+        votes = Like.count_likes(post.key().id())
+        error = ""
+        has_voted_up = ""
+        has_voted_down = ""
+
+        if post.author == current_user:
+            error = "You cannot vote on your own post."
+            # self.render("permalink.html",
+            #             username=current_user.username,
+            #             post=post,
+            #             comments=comments,
+            #             error=error,
+            #             user_is_author=True,
+            #             votes=votes,
+            #             has_voted_up=has_voted_up,
+            #             has_voted_down=has_voted_down)
+        else:
+            if voted == "like":
+                if Like.vote_of_post(post, current_user) == True:
+                    error = "Already voted up. Cannot vote twice."
+                    has_voted_up = "voted"
+                elif Like.vote_of_post(post, current_user) == False:
+                    vote = Like.get_by_post(post).filter("user=", current_user)
+                    vote.delete()
+                    time.sleep(0.1)
+                else:
+                    like = Like(user=current_user, post=post, status=True)
+                    like.put()
+                    time.sleep(0.1)
+                    has_voted_up = "voted"
+
+            elif voted == "dislike":
+                if Like.vote_of_post(post, current_user) == True:
+                    vote = Like.get_by_post(post).filter("user=", current_user)
+                    vote.delete()
+                    time.sleep(0.1)
+                elif Like.vote_of_post(post, current_user) == False:
+                    error = "Already voted down. Cannot vote twice."
+                    has_voted_down = "voted"
+                else:
+                    like = Like(user=current_user, post=post, status=False)
+                    like.put()
+                    time.sleep(0.1)
+                    has_voted_down = "voted"
+
+
+            # self.render("permalink.html",
+            #     username=current_user.username,
+            #     post=post,
+            #     comments=comments,
+            #     error=error,
+            #     user_is_author=False,
+            #     votes=votes,
+            #     has_voted_up=has_voted_up,
+            #     has_voted_down=has_voted_down)
+            self.redirect("/blog/%s" % post.key().id())
 
 class NewComment(BaseHandler):
     def post(self, number):
@@ -377,7 +438,7 @@ app = webapp2.WSGIApplication([('/?', Greet),
                                ('/blog/(\d+)', ShowPost),
                                ('/blog/(\d+)/edit', EditPost),
                                ('/blog/(\d+)/delete', DeletePost),
-                               ('/blog/(\d+)/vote', NewVote),
+                               ('/blog/(\d+)/vote/(.+)', NewVote),
                                ('/blog/(\d+)/comment', NewComment),
                                ('/blog/logout', Logout)],
                               debug=True)
