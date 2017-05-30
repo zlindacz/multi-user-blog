@@ -5,10 +5,11 @@
 #2F4B49
 */
 
+/* blog title & header */
 
 .blog-title {
   text-align: center;
-  font-family: 'Gloria Hallelujah', cursive;
+  font-family: 'Rock Salt', cursive;
   font-size: 2.5em;
   font-weight: bold;
   margin: 0.5em;
@@ -18,15 +19,17 @@
 .nav-bar {
   display: flex;
   justify-content: space-around;
-  border-bottom: 4px groove #da9f66;
+  border-bottom: 4px groove #deb085;
   font-family: 'Gloria Hallelujah', cursive;
+  font-weight: bold;
   font-size: 1.2em;
   color: #4a3315;
   margin: 0 0 1.5em;
 }
 
 .logout-button {
-  color: #da9f66;
+  color: #dac3ad;
+  text-shadow: 1px 1px 2px #4a3315;
   font-size: 95%;
 }
 
@@ -34,15 +37,16 @@
   cursor: pointer;
 }
 
+/* Posts */
+
 .posts {
   width: 85vw;
   margin: 1em auto;
   font-family: 'Gloria Hallelujah', cursive;
   color: blanchedalmond;
-  /*display: flex;*/
 }
 
-.a-post {
+.each-post {
   background: rgba(98, 74, 54, 0.60);
   border-radius: 5px;
   padding: 1em;
@@ -57,22 +61,17 @@
   border-bottom: 2px solid rgb(45, 30, 18);
 }
 
+.post-title, .new-post-title, .comment-title {
+  font-size: 25px;
+  font-weight: bold;
+}
+
 .post-author {
   font-size: 1.1em;
 }
 
 .post-body {
   padding: 0.5em;
-}
-
-.post-title, .new-post-title {
-  font-size: 25px;
-  font-weight: bold;
-}
-
-.error {
-  padding: 1.5em;
-  color: #d92f00;
 }
 
 /* Modal styling */
@@ -122,14 +121,4 @@
 
 .delete:hover {
   cursor: pointer
-}
-
-.voted {
-  color: purple;
-}
-
-.vote-button {
-  border: none;
-  padding: 0;
-  background-color: transparent;
 }

@@ -1,0 +1,28 @@
+.votes-container {
+  width: 15%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 0.5em;
+}
+
+.voted {
+  color: rgb(198, 138, 227)
+;
+}
+
+.vote-button {
+  border: none;
+  padding: 0;
+  background-color: transparent;
+}
+
+.vote-count {
+
+}
+
+.vote-error {
+  padding: 1em 0;
+  color: rgb(249, 167, 145);
+  text-align: center;
+}

@@ -1,0 +1,31 @@
+.new-comment-form {
+  width: 50vw;
+  margin: 1em auto;
+  color: #4a3315;
+  font-family: 'Gloria Hallelujah', cursive;
+}
+
+.comment-textarea {
+  background-color: blanchedalmond;
+  width: 80%;
+  height: 100px;
+  margin-top: 1em;
+  padding: 1em;
+}
+
+.comment-button {
+  padding: 4px;
+  font-size: 16px;
+  margin: 5px 0;
+  border: 2px solid #4a3315;
+  border-radius: 3px;
+}
+
+.comment-button:hover {
+  cursor: pointer;
+}
+
+.comment-error {
+  padding: 1em 0;
+  color: rgb(143, 34, 5);
+}
