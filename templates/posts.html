@@ -1,7 +1,7 @@
 <main class="posts">
 
   {% for blog in blogs %}
-    <article class="a-post">
+    <article class="each-post">
       <div class="post-title-header">
         <h2 class="post-author">Submitted by: {{blog.author.username}}</h2>
         <h2 class="post-title"><a href="blog/{{blog.key().id()}}">{{blog.title}}</a></h2>

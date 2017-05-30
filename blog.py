@@ -102,17 +102,17 @@ class BaseHandler(webapp2.RequestHandler):
         self.write(self.render_str(template, **kwargs))
 
     def render_front(self, form=False, title="", blog="", error="", blogs=""):
-        username = self.get_current_user()
         blogs = db.GqlQuery("SELECT * FROM Blog "
                             "ORDER BY date DESC LIMIT 10")
+        username = self.get_current_user()
 
         self.render("main.html",
                     form=form,
+                    username=username,
                     title=title,
                     blog=blog,
                     error=error,
-                    blogs=blogs,
-                    username=username)
+                    blogs=blogs)
 
     def redirect_if_not_logged_in(self):
         cookie = self.request.cookies.get("name")
@@ -148,8 +148,9 @@ class MainPage(BaseHandler):
 
 class NewPost(BaseHandler):
     def get(self):
-        username = self.get_current_user()
         self.redirect_if_not_logged_in()
+        username = self.get_current_user()
+
         self.render("main.html",
                     form=True,
                     action="/blog/newpost",
@@ -169,11 +170,13 @@ class NewPost(BaseHandler):
         else:
             error = "We need both a title and a blog in order to publish this entry."
             self.render("main.html",
+                        form=True,
+                        action="/blog/newpost",
+                        username=username,
                         title=title,
                         blog=blog,
                         error=error,
-                        submit="Publish",
-                        username=username)
+                        submit="Publish")
 
 class ShowPost(BaseHandler):
     def get(self, number):
@@ -234,12 +237,13 @@ class EditPost(BaseHandler):
         self.render("main.html",
                     form=True,
                     action="/blog/%s/edit" % number,
+                    username=username,
                     title=post.title,
                     blog=post.blog,
-                    submit="Update",
-                    username=username)
+                    submit="Update")
 
     def post(self, number):
+        username = self.get_current_user()
         title = self.request.get("subject")
         blog = self.request.get("content")
         post = Blog.get_by_id(int(number))
@@ -250,8 +254,13 @@ class EditPost(BaseHandler):
             post.put()
             self.redirect("/blog/%s" % number)
         else:
-            error = "We need both a title and a blog in order to publish this entry."
-            self.render_front(True, title, blog, error)
+            error = "We need both a title and a blog in order to update this entry."
+            self.render("main.html",
+                        form=True,
+                        username=username,
+                        action="/blog/%s/edit" % number,
+                        error=error,
+                        submit="Update")
 
 class DeletePost(BaseHandler):
     def get(self, number):

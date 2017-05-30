@@ -1,12 +1,13 @@
 <main class="new-comment-form">
   <form action="/blog/{{post.key().id()}}/comment" method="post">
-    <label for="textarea" class="input">
-      <h2>Comment</h2>
-      <textarea id="textarea"
-                class="comment-textarea"
-                name="content"></textarea>
+    <label class="input">
+      <h2 class="comment-title">Comment</h2>
+      <textarea class="comment-textarea"
+                name="content"
+                rows="6"
+                cols="5"></textarea>
     </label>
-    <div class="error">{{error}}</div>
+    <div class="comment-error">{{error}}</div>
     <input type="submit" class="comment-button" value="Submit">
   </form>
 </main>
