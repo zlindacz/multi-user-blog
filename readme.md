@@ -1,8 +1,50 @@
 [Live Link](https://test-146823.appspot.com/)
 
-This blogging app is written in Python and created with Google App Engine.
+## Intro
+
+This blogging app is built on [Google App engine](https://cloud.google.com/appengine/docs/python/) using Python 2.7 and [webapp2](https://webapp2.readthedocs.io/en/latest/), a lightweight web application framework. Requests are handled using the WSGI application (Web Server Gateway Interface). [Jinja](http://jinja.pocoo.org/docs/2.9/) is the template engine used.
 
 Authentication is custom designed. Password digests are created and validated using Python's hashlib module (sha256).
+
+## Structure of the files
+
+* The `static` directory holds stylesheets
+* The `templates` directory holds templates
+* `app.yaml` is the configuration file for the app
+* `blog.py` has the app logic
+* `signup_helper.py` has functions that help during the authentication process
+
+## How to run the app locally
+
+1. Install Google App Engine onto the machine that will run this app and install the necessary components
+2. Download this directory
+3. Navigate to the directory one level up from the app directory
+3. In the terminal, type `dev_appserver <app_directory_name>`
+4. In a browser, go to `http://localhost:8080/`
+5. To see the datastore locally and to delete entries
+go to `http://localhost:8000/datastore`
+
+## How to deploy the app to App Engine
+
+1. Navigate to app directory
+2. In the terminal, type `gcloud app deploy <path/for/yaml-file>`
+3. Access at `<unique-name>.appspot.com/path`
+4. To see the app in the deployed web browser, type in the terminal `gcloud app browse`
+
+#### Todo for Udacity's Full Stack Nanodegree assignment
+
+###### Code functionality
+[x] App is built using Google App Engine
+[x] Submitted URL is publicly accessible
+
+###### Site Usability
+[x] User is directed to login, logout, and signup pages as appropriate
+* [x] Login page should have a link to signup page and vice-versa
+* [x[ Logout page is only available to logged in user
+* [x] User can edit their own posts
+
+
+
 
 Todos
 - [x] Blog has an index page as the front page
@@ -12,6 +54,6 @@ Todos
 - [x] User cannot access posts if they're not logged in
 - [x] User can comment on all posts if they're logged in
 - [x] User can like posts by other authors
-- [ ] Styling
-- [ ] Deploy app to appspot.com
-- [ ] Readme
+- [x] Styling
+- [x] Readme
+- [x] Deploy app to appspot.com

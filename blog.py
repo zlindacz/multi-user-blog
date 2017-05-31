@@ -1,18 +1,7 @@
 #######################################################
 # The blog.py module contains the back end logic
-# for the blog, using the Google App Engine.
-# Docs: https://cloud.google.com/appengine/docs/python/
+# for the blog, using webapp2 on Google App Engine.
 # jinja 2 is the template engine used
-# Docs: http://jinja.pocoo.org/docs/2.9/
-# To view the blog during development,
-# run in terminal from outside directory:
-# `dev_appserver.py <dirname>` and access at
-# http://localhost:8080/
-# To deploy, run in terminal:
-# `gcloud app deploy <path for yaml file>`
-# Access at `unique-name.appspot.com/path`
-# To see the datastore locally, once the server is up
-# go to: http://localhost:8000/datastore
 #######################################################
 
 import os
@@ -154,6 +143,7 @@ class NewPost(BaseHandler):
         self.render("main.html",
                     form=True,
                     action="/blog/newpost",
+                    cancel="/blog",
                     submit="Publish",
                     username=username)
 
@@ -172,6 +162,7 @@ class NewPost(BaseHandler):
             self.render("main.html",
                         form=True,
                         action="/blog/newpost",
+                        cancel="/blog",
                         username=username,
                         title=title,
                         blog=blog,
@@ -237,6 +228,7 @@ class EditPost(BaseHandler):
         self.render("main.html",
                     form=True,
                     action="/blog/%s/edit" % number,
+                    cancel="/blog/%s" % number,
                     username=username,
                     title=post.title,
                     blog=post.blog,
@@ -259,6 +251,7 @@ class EditPost(BaseHandler):
                         form=True,
                         username=username,
                         action="/blog/%s/edit" % number,
+                        cancel="/blog/%s" % number,
                         error=error,
                         submit="Update")
 
