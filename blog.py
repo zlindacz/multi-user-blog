@@ -118,11 +118,14 @@ class BaseHandler(webapp2.RequestHandler):
         return None
 
     def get_current_user(self):
-        user = self.get_cookie("name")
-        if user:
-            return user.split("|")[0]
-        else:
-            return None
+        cookie = self.get_cookie("name")
+        if cookie:
+            username = cookie.split("|")[0]
+            cookie_hash = cookie.split("|")[1]
+            user_digest = User.get_by("username", username).password_digest.split("|")[1]
+            if username and (cookie_hash == user_digest):
+                return username
+        return None
 
 # handling routes
 
@@ -151,10 +154,9 @@ class NewPost(BaseHandler):
         title = self.request.get("subject")
         blog = self.request.get("content")
         username = self.get_current_user()
-
+        user = User.get_by("username", username)
         if title and blog and username:
-            author = User.gql("WHERE username=:1", username).get()
-            b = Blog(title=title, blog=blog, author=author)
+            b = Blog(title=title, blog=blog, author=user)
             b.put()
             self.redirect("/blog/%s" % b.key().id())
         else:
@@ -401,6 +403,7 @@ class SignUp(BaseHandler):
             self.response.headers.add_header('Set-Cookie',
                                              'name={0};Path=/'
                                              .format(cookie))
+            time.sleep(0.2)
             self.redirect('/blog')
         else:
             self.render('signup_form.html',
