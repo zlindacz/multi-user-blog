@@ -219,7 +219,6 @@ class ShowPost(BaseHandler):
 
 
 class EditPost(BaseHandler):
-
     def get(self, number):
         self.redirect_if_not_logged_in()
         post = Blog.get_by_id(int(number))
@@ -282,7 +281,6 @@ class DeletePost(BaseHandler):
                     user_is_author=False)
 
 class NewVote(BaseHandler):
-
     def post(self, number, voted):
         current_user = User.get_by("username", self.get_current_user())
         post = Blog.get_by_id(int(number))
@@ -346,7 +344,6 @@ class NewVote(BaseHandler):
                 votes=votes,
                 has_voted_up=has_voted_up,
                 has_voted_down=has_voted_down)
-
 
 class NewComment(BaseHandler):
     def post(self, number):
