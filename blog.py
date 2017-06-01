@@ -332,6 +332,24 @@ class NewComment(BaseHandler):
             time.sleep(0.1)
             self.redirect("/blog/%s" % number)
 
+class EditComment(BaseHandler):
+    def get(self, post_id, comment_id):
+        self.redirect_if_not_logged_in()
+        print "GET edit comment"
+
+    def post(self, post_id, comment_id):
+        self.redirect_if_not_logged_in()
+        print "POST edit comment"
+
+class DeleteComment(BaseHandler):
+    def get(self, post_id, comment_id):
+        self.redirect_if_not_logged_in()
+        print "GET delete comment"
+
+    def post(self, post_id, comment_id):
+        self.redirect_if_not_logged_in()
+        print "POST delete comment"
+
 class SignUp(BaseHandler):
     def get(self):
         if self.get_current_user():
@@ -424,5 +442,7 @@ app = webapp2.WSGIApplication([('/?', Greet),
                                ('/blog/(\d+)/delete', DeletePost),
                                ('/blog/(\d+)/vote/(.+)', NewVote),
                                ('/blog/(\d+)/comment', NewComment),
+                               ('/blog/(\d+)/comment/(\d+)/edit', EditComment),
+                               ('/blog/(\d+)/comment/(\d+)/delete', DeleteComment),
                                ('/blog/logout', Logout)],
                               debug=True)
