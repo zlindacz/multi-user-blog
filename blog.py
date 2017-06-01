@@ -68,7 +68,6 @@ class Like(db.Model):
     @classmethod
     def vote_of_post(cls, post, user):
         user_vote = filter(lambda x: x.post.key().id() == post.key().id() and x.user.username == user.username, cls.all())
-        print cls.all()
         if len(user_vote) > 0:
             return user_vote[0].status
         else:
@@ -104,9 +103,15 @@ class BaseHandler(webapp2.RequestHandler):
                     blogs=blogs)
 
     def redirect_if_not_logged_in(self):
-        cookie = self.request.cookies.get("name")
+        cookie = self.get_cookie("name")
         if not cookie:
             self.redirect('/blog/login')
+        else:
+            username = cookie.split("|")[0]
+            cookie_hash = cookie.split("|")[1]
+            user_digest = User.get_by("username", username).password_digest.split("|")[1]
+            if cookie_hash != user_digest:
+                self.redirect('/blog/login')
 
     def get_cookie(self, name):
         raw_cookies = self.request.headers.get("Cookie")
@@ -151,6 +156,7 @@ class NewPost(BaseHandler):
                     username=username)
 
     def post(self):
+        self.redirect_if_not_logged_in()
         title = self.request.get("subject")
         blog = self.request.get("content")
         username = self.get_current_user()
@@ -175,58 +181,60 @@ class ShowPost(BaseHandler):
     def get(self, number):
         self.redirect_if_not_logged_in()
         post = Blog.get_by_id(int(number))
-        comments = Comment.by_post(int(number))
-        error = self.request.get("error")
-        username = self.get_current_user()
-        current_user = User.get_by("username", username)
-        votes = Like.count_likes(post.key().id())
-        has_voted_up = ""
-        has_voted_down = ""
-        print User.get_by("username", username)
-
-        if Like.vote_of_post(post, current_user) == True:
-            has_voted_up = "voted"
-        elif Like.vote_of_post(post, current_user) == False:
-            has_voted_down = "voted"
-
-        if error:
-            error = "Cannot submit empty comment."
-        else:
-            error = ""
-
         if not post:
-            self.error(404)
-            return
-
-        if self.get_current_user() == post.author.username:
-            self.render("permalink.html",
-                        username=username,
-                        post=post,
-                        comments=comments,
-                        error=error,
-                        user_is_author=True,
-                        votes=votes,
-                        has_voted_up="",
-                        has_voted_down="")
+            self.render("error.html")
         else:
-            self.render("permalink.html",
-                        username=username,
-                        post=post,
-                        comments=comments,
-                        error=error,
-                        user_is_author=False,
-                        votes=votes,
-                        has_voted_up=has_voted_up,
-                        has_voted_down=has_voted_down)
+            comments = Comment.by_post(int(number))
+            error = self.request.get("error")
+            username = self.get_current_user()
+            current_user = User.get_by("username", username)
+            votes = Like.count_likes(post.key().id())
+            has_voted_up = ""
+            has_voted_down = ""
+
+
+            if Like.vote_of_post(post, current_user) == True:
+                has_voted_up = "voted"
+            elif Like.vote_of_post(post, current_user) == False:
+                has_voted_down = "voted"
+
+            if error:
+                error = "Cannot submit empty comment."
+            else:
+                error = ""
+
+            if post and self.get_current_user() == post.author.username:
+                self.render("permalink.html",
+                            username=username,
+                            post=post,
+                            comments=comments,
+                            error=error,
+                            user_is_author=True,
+                            votes=votes,
+                            has_voted_up="",
+                            has_voted_down="")
+            elif post:
+                self.render("permalink.html",
+                            username=username,
+                            post=post,
+                            comments=comments,
+                            error=error,
+                            user_is_author=False,
+                            votes=votes,
+                            has_voted_up=has_voted_up,
+                            has_voted_down=has_voted_down)
 
 
 class EditPost(BaseHandler):
     def get(self, number):
         self.redirect_if_not_logged_in()
-        post = Blog.get_by_id(int(number))
         username = self.get_current_user()
+        post = Blog.get_by_id(int(number))
 
-        self.render("main.html",
+        if not post or post.author.username != username:
+            self.render("error.html")
+        else:
+            self.render("main.html",
                     form=True,
                     action="/blog/%s/edit" % number,
                     cancel="/blog/%s" % number,
@@ -236,12 +244,15 @@ class EditPost(BaseHandler):
                     submit="Update")
 
     def post(self, number):
+        self.redirect_if_not_logged_in()
         username = self.get_current_user()
         title = self.request.get("subject")
         blog = self.request.get("content")
         post = Blog.get_by_id(int(number))
 
-        if title and blog:
+        if not post or post.author.username != username:
+            self.render("error.html")
+        elif title and blog:
             post.title = title
             post.blog = blog
             post.put()
@@ -249,41 +260,53 @@ class EditPost(BaseHandler):
         else:
             error = "We need both a title and a blog in order to update this entry."
             self.render("main.html",
-                        form=True,
-                        username=username,
-                        action="/blog/%s/edit" % number,
-                        cancel="/blog/%s" % number,
-                        error=error,
-                        submit="Update")
+                    form=True,
+                    username=username,
+                    action="/blog/%s/edit" % number,
+                    cancel="/blog/%s" % number,
+                    error=error,
+                    submit="Update")
 
 class DeletePost(BaseHandler):
     def get(self, number):
         self.redirect_if_not_logged_in()
         title = self.request.get("subject")
+        username = self.get_current_user()
         blog = self.request.get("content")
         post = Blog.get_by_id(int(number))
-        username = self.get_current_user()
 
-        self.render("permalink.html",
+        if not post or post.author.username != username:
+            self.render("error.html")
+        else:
+            self.render("permalink.html",
                     username=username,
                     post=post,
                     user_is_author=True,
                     modal=True)
 
     def post(self, number):
+        self.redirect_if_not_logged_in()
         post = Blog.get_by_id(int(number))
-        post.delete()
-        comments = post.comments
-        username = self.get_current_user()
-        for comment in comments:
-            comment.delete()
-        self.render("permalink.html",
-                    username=username,
-                    post=post,
-                    user_is_author=False)
+
+        if not post or post.author.username != username:
+            self.render("error.html")
+        else:
+            post.delete()
+            comments = post.comments
+            likes = post.likes
+            username = self.get_current_user()
+            for comment in comments:
+                comment.delete()
+            for like in likes:
+                like.delete()
+            self.render("permalink.html",
+                        username=username,
+                        post=post,
+                        user_is_author=False)
 
 class NewVote(BaseHandler):
     def post(self, number, voted):
+        self.redirect_if_not_logged_in()
         current_user = User.get_by("username", self.get_current_user())
         post = Blog.get_by_id(int(number))
         comments = post.comments
@@ -349,6 +372,7 @@ class NewVote(BaseHandler):
 
 class NewComment(BaseHandler):
     def post(self, number):
+        self.redirect_if_not_logged_in()
         body = self.request.get("content")
         author = User.gql("WHERE username=:1", self.get_current_user()).get()
         post = Blog.get_by_id(int(number))
