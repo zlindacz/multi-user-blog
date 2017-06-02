@@ -48,6 +48,41 @@ class BaseHandler(webapp2.RequestHandler):
                     error=error,
                     blogs=blogs)
 
+    def render_show(self, username, post, error, comment=None):
+        comments = models.Comment.by_post(post.key().id())
+        votes = models.Like.count_likes(post.key().id())
+        current_user = models.User.get_by("username", username)
+        has_voted_up = ""
+        has_voted_down = ""
+
+        if models.Like.vote_of_post(post, current_user) == True:
+            has_voted_up = "voted"
+        elif models.Like.vote_of_post(post, current_user) == False:
+            has_voted_down = "voted"
+
+        if username == post.author.username:
+            self.render("permalink.html",
+                        username=username,
+                        post=post,
+                        comments=comments,
+                        comment=comment,
+                        error=error,
+                        user_is_author=True,
+                        votes=votes,
+                        has_voted_up="",
+                        has_voted_down="")
+        else:
+            self.render("permalink.html",
+                        username=username,
+                        post=post,
+                        comments=comments,
+                        comment=comment,
+                        error=error,
+                        user_is_author=False,
+                        votes=votes,
+                        has_voted_up=has_voted_up,
+                        has_voted_down=has_voted_down)
+
     def redirect_if_not_logged_in(self):
         if not self.get_current_user():
             self.redirect('/blog/login')
@@ -127,46 +162,17 @@ class ShowPost(BaseHandler):
         if not post:
             self.render("error.html")
         else:
-            comments = models.Comment.by_post(int(number))
             error = self.request.get("error")
             username = self.get_current_user()
-            current_user = models.User.get_by("username", username)
-            votes = models.Like.count_likes(post.key().id())
-            has_voted_up = ""
-            has_voted_down = ""
-
-
-            if models.Like.vote_of_post(post, current_user) == True:
-                has_voted_up = "voted"
-            elif models.Like.vote_of_post(post, current_user) == False:
-                has_voted_down = "voted"
 
             if error:
                 error = "Cannot submit empty comment."
             else:
                 error = ""
 
-            if self.get_current_user() == post.author.username:
-                self.render("permalink.html",
-                            username=username,
-                            post=post,
-                            comments=comments,
-                            error=error,
-                            user_is_author=True,
-                            votes=votes,
-                            has_voted_up="",
-                            has_voted_down="")
-            else:
-                self.render("permalink.html",
-                            username=username,
-                            post=post,
-                            comments=comments,
-                            error=error,
-                            user_is_author=False,
-                            votes=votes,
-                            has_voted_up=has_voted_up,
-                            has_voted_down=has_voted_down)
-
+            self.render_show(username=username,
+                             post=post,
+                             error=error)
 
 class EditPost(BaseHandler):
     def get(self, number):
@@ -333,63 +339,47 @@ class EditComment(BaseHandler):
     def get(self, post_id, comment_id):
         self.redirect_if_not_logged_in()
         post = models.Blog.get_by_id(int(post_id))
-        comment = models.Blog.get_by_id(int(comment_id))
+        comment = models.Comment.get_by_id(int(comment_id))
+
         if not post or not comment:
             self.render("error.html")
         else:
-            error = self.request.get("error")
             username = self.get_current_user()
-            current_user = models.User.get_by("username", username)
-            votes = models.Like.count_likes(post.key().id())
-            has_voted_up = ""
-            has_voted_down = ""
-
-
-            if models.Like.vote_of_post(post, current_user) == True:
-                has_voted_up = "voted"
-            elif models.Like.vote_of_post(post, current_user) == False:
-                has_voted_down = "voted"
+            error = self.request.get("error")
 
             if error:
                 error = "Cannot submit empty comment."
             else:
                 error = ""
 
-            if self.get_current_user() == comment.author.username:
-                self.render("permalink.html",
-                            username=username,
-                            post=post,
-                            comments=comments,
-                            comment=comment,
-                            error=error,
-                            user_is_author=True,
-                            votes=votes,
-                            has_voted_up="",
-                            has_voted_down="")
-            else:
-                self.render("permalink.html",
-                            username=username,
-                            post=post,
-                            comments=comments,
-                            comment=comment,
-                            error=error,
-                            user_is_author=False,
-                            votes=votes,
-                            has_voted_up=has_voted_up,
-                            has_voted_down=has_voted_down)
+            self.render_show(username=username,
+                             post=post,
+                             comment=comment,
+                             error=error)
 
     def post(self, post_id, comment_id):
         self.redirect_if_not_logged_in()
-        print "POST edit comment"
+        comment = models.Comment.get_by_id(int(comment_id))
+        if not comment:
+            self.render("error.html")
+        else:
+            body = self.request.get("content")
+            comment.body = body
+            comment.put()
+            time.sleep(0.2)
+            self.redirect("/blog/%s" % post_id)
+
 
 class DeleteComment(BaseHandler):
-    def get(self, post_id, comment_id):
-        self.redirect_if_not_logged_in()
-        print "GET delete comment"
-
     def post(self, post_id, comment_id):
         self.redirect_if_not_logged_in()
-        print "POST delete comment"
+        comment = models.Comment.get_by_id(int(comment_id))
+        if comment:
+            comment.delete()
+            time.sleep(0.2)
+            self.redirect("/blog/%s" % post_id)
+        else:
+            self.render("error.html")
 
 class SignUp(BaseHandler):
     def get(self):
