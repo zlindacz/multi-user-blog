@@ -49,15 +49,8 @@ class BaseHandler(webapp2.RequestHandler):
                     blogs=blogs)
 
     def redirect_if_not_logged_in(self):
-        cookie = self.get_cookie("name")
-        if not cookie:
+        if not self.get_current_user():
             self.redirect('/blog/login')
-        else:
-            username = cookie.split("|")[0]
-            cookie_hash = cookie.split("|")[1]
-            user_digest = models.User.get_by("username", username).password_digest.split("|")[1]
-            if cookie_hash != user_digest:
-                self.redirect('/blog/login')
 
     def get_cookie(self, name):
         raw_cookies = self.request.headers.get("Cookie")
@@ -73,10 +66,14 @@ class BaseHandler(webapp2.RequestHandler):
         if cookie:
             username = cookie.split("|")[0]
             cookie_hash = cookie.split("|")[1]
-            user_digest = models.User.get_by("username", username).password_digest.split("|")[1]
-            if username and (cookie_hash == user_digest):
-                return username
+            user = models.User.get_by("username", username)
+            if user:
+                password_digest = user.password_digest.split("|")[1]
+                if username and (cookie_hash == password_digest):
+                    return username
+        self.response.delete_cookie("name")
         return None
+
 
 # handling routes
 
@@ -149,7 +146,7 @@ class ShowPost(BaseHandler):
             else:
                 error = ""
 
-            if post and self.get_current_user() == post.author.username:
+            if self.get_current_user() == post.author.username:
                 self.render("permalink.html",
                             username=username,
                             post=post,
@@ -159,7 +156,7 @@ class ShowPost(BaseHandler):
                             votes=votes,
                             has_voted_up="",
                             has_voted_down="")
-            elif post:
+            else:
                 self.render("permalink.html",
                             username=username,
                             post=post,
@@ -335,7 +332,51 @@ class NewComment(BaseHandler):
 class EditComment(BaseHandler):
     def get(self, post_id, comment_id):
         self.redirect_if_not_logged_in()
-        print "GET edit comment"
+        post = models.Blog.get_by_id(int(post_id))
+        comment = models.Blog.get_by_id(int(comment_id))
+        if not post or not comment:
+            self.render("error.html")
+        else:
+            error = self.request.get("error")
+            username = self.get_current_user()
+            current_user = models.User.get_by("username", username)
+            votes = models.Like.count_likes(post.key().id())
+            has_voted_up = ""
+            has_voted_down = ""
+
+
+            if models.Like.vote_of_post(post, current_user) == True:
+                has_voted_up = "voted"
+            elif models.Like.vote_of_post(post, current_user) == False:
+                has_voted_down = "voted"
+
+            if error:
+                error = "Cannot submit empty comment."
+            else:
+                error = ""
+
+            if self.get_current_user() == comment.author.username:
+                self.render("permalink.html",
+                            username=username,
+                            post=post,
+                            comments=comments,
+                            comment=comment,
+                            error=error,
+                            user_is_author=True,
+                            votes=votes,
+                            has_voted_up="",
+                            has_voted_down="")
+            else:
+                self.render("permalink.html",
+                            username=username,
+                            post=post,
+                            comments=comments,
+                            comment=comment,
+                            error=error,
+                            user_is_author=False,
+                            votes=votes,
+                            has_voted_up=has_voted_up,
+                            has_voted_down=has_voted_down)
 
     def post(self, post_id, comment_id):
         self.redirect_if_not_logged_in()
