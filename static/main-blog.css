@@ -57,7 +57,7 @@
   padding: 0.5em;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   border-bottom: 2px solid rgb(45, 30, 18);
 }
 

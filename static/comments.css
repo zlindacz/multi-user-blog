@@ -44,3 +44,24 @@
   padding: 1em 0;
   color: rgb(143, 34, 5);
 }
+
+.comment-modify {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+}
+
+.comment-edit-link {
+  margin: 0 1em;
+}
+
+.comment-delete-link {
+  padding: 0;
+  margin: 0 1em;
+}
+
+.comment-delete-link:hover,
+.comment-delete-link:focus {
+  cursor: pointer;
+}

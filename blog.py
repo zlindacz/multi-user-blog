@@ -11,68 +11,13 @@ import signup_helper
 import re
 import logging
 import time
-import pdb
+import models
 
 from google.appengine.ext import db
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
                                autoescape = True)
-
-# Models
-
-class User(db.Model):
-    username = db.StringProperty(required=True)
-    password_digest = db.StringProperty(required=True)
-
-    @classmethod
-    def get_by(cls, key, value):
-        return cls.gql("WHERE %s = :1" % key, value).get()
-
-class Blog(db.Model):
-    title = db.StringProperty(required=True)
-    date = db.DateTimeProperty(auto_now_add=True)
-    blog = db.TextProperty(required=True)
-    author = db.ReferenceProperty(User, collection_name="blogs")
-
-class Comment(db.Model):
-    body = db.TextProperty(required=True)
-    date = db.DateTimeProperty(auto_now_add=True)
-    author = db.ReferenceProperty(User, collection_name="comments")
-    post = db.ReferenceProperty(Blog, collection_name="comments")
-
-    @classmethod
-    def by_post(cls, post_id):
-        unsorted = filter(lambda x: x.post.key().id() == int(post_id), cls.all())
-        if unsorted == []:
-            return unsorted
-        else:
-            return sorted(unsorted, key=lambda x: x.date, reverse=True)
-
-    @classmethod
-    def by_author(cls, user_id):
-        return filter(lambda x: x.user.key().id() == int(user_id), cls.all())
-
-class Like(db.Model):
-    user = db.ReferenceProperty(User, collection_name="likes", indexed=True)
-    post = db.ReferenceProperty(Blog, collection_name="likes", indexed=True)
-    status = db.BooleanProperty(required=True)
-
-    @classmethod
-    def count_likes(cls, post_id):
-        all_votes = filter(lambda x: x.post.key().id() == int(post_id), cls.all())
-        likes = filter(lambda x: x.status == True, all_votes)
-        total_score = len(likes) - (len(all_votes) - len(likes))
-        return total_score
-
-    @classmethod
-    def vote_of_post(cls, post, user):
-        user_vote = filter(lambda x: x.post.key().id() == post.key().id() and x.user.username == user.username, cls.all())
-        print cls.all()
-        if len(user_vote) > 0:
-            return user_vote[0].status
-        else:
-            return None
 
 # Rendering handler and rendering methods
 
@@ -103,9 +48,43 @@ class BaseHandler(webapp2.RequestHandler):
                     error=error,
                     blogs=blogs)
 
+    def render_show(self, username, post, error, comment=None):
+        comments = models.Comment.by_post(post.key().id())
+        votes = models.Like.count_likes(post.key().id())
+        current_user = models.User.get_by("username", username)
+        has_voted_up = ""
+        has_voted_down = ""
+
+        if models.Like.vote_of_post(post, current_user) == True:
+            has_voted_up = "voted"
+        elif models.Like.vote_of_post(post, current_user) == False:
+            has_voted_down = "voted"
+
+        if username == post.author.username:
+            self.render("permalink.html",
+                        username=username,
+                        post=post,
+                        comments=comments,
+                        comment=comment,
+                        error=error,
+                        user_is_author=True,
+                        votes=votes,
+                        has_voted_up="",
+                        has_voted_down="")
+        else:
+            self.render("permalink.html",
+                        username=username,
+                        post=post,
+                        comments=comments,
+                        comment=comment,
+                        error=error,
+                        user_is_author=False,
+                        votes=votes,
+                        has_voted_up=has_voted_up,
+                        has_voted_down=has_voted_down)
+
     def redirect_if_not_logged_in(self):
-        cookie = self.request.cookies.get("name")
-        if not cookie:
+        if not self.get_current_user():
             self.redirect('/blog/login')
 
     def get_cookie(self, name):
@@ -118,11 +97,18 @@ class BaseHandler(webapp2.RequestHandler):
         return None
 
     def get_current_user(self):
-        user = self.get_cookie("name")
-        if user:
-            return user.split("|")[0]
-        else:
-            return None
+        cookie = self.get_cookie("name")
+        if cookie:
+            username = cookie.split("|")[0]
+            cookie_hash = cookie.split("|")[1]
+            user = models.User.get_by("username", username)
+            if user:
+                password_digest = user.password_digest.split("|")[1]
+                if username and (cookie_hash == password_digest):
+                    return username
+        self.response.delete_cookie("name")
+        return None
+
 
 # handling routes
 
@@ -148,13 +134,13 @@ class NewPost(BaseHandler):
                     username=username)
 
     def post(self):
+        self.redirect_if_not_logged_in()
         title = self.request.get("subject")
         blog = self.request.get("content")
         username = self.get_current_user()
-
+        user = models.User.get_by("username", username)
         if title and blog and username:
-            author = User.gql("WHERE username=:1", username).get()
-            b = Blog(title=title, blog=blog, author=author)
+            b = models.Blog(title=title, blog=blog, author=user)
             b.put()
             self.redirect("/blog/%s" % b.key().id())
         else:
@@ -172,59 +158,32 @@ class NewPost(BaseHandler):
 class ShowPost(BaseHandler):
     def get(self, number):
         self.redirect_if_not_logged_in()
-        post = Blog.get_by_id(int(number))
-        comments = Comment.by_post(int(number))
-        error = self.request.get("error")
-        username = self.get_current_user()
-        current_user = User.get_by("username", username)
-        votes = Like.count_likes(post.key().id())
-        has_voted_up = ""
-        has_voted_down = ""
-        print User.get_by("username", username)
-
-        if Like.vote_of_post(post, current_user) == True:
-            has_voted_up = "voted"
-        elif Like.vote_of_post(post, current_user) == False:
-            has_voted_down = "voted"
-
-        if error:
-            error = "Cannot submit empty comment."
-        else:
-            error = ""
-
+        post = models.Blog.get_by_id(int(number))
         if not post:
-            self.error(404)
-            return
-
-        if self.get_current_user() == post.author.username:
-            self.render("permalink.html",
-                        username=username,
-                        post=post,
-                        comments=comments,
-                        error=error,
-                        user_is_author=True,
-                        votes=votes,
-                        has_voted_up="",
-                        has_voted_down="")
+            self.render("error.html")
         else:
-            self.render("permalink.html",
-                        username=username,
-                        post=post,
-                        comments=comments,
-                        error=error,
-                        user_is_author=False,
-                        votes=votes,
-                        has_voted_up=has_voted_up,
-                        has_voted_down=has_voted_down)
+            error = self.request.get("error")
+            username = self.get_current_user()
 
+            if error:
+                error = "Cannot submit empty comment."
+            else:
+                error = ""
+
+            self.render_show(username=username,
+                             post=post,
+                             error=error)
 
 class EditPost(BaseHandler):
     def get(self, number):
         self.redirect_if_not_logged_in()
-        post = Blog.get_by_id(int(number))
         username = self.get_current_user()
+        post = models.Blog.get_by_id(int(number))
 
-        self.render("main.html",
+        if not post or post.author.username != username:
+            self.render("error.html")
+        else:
+            self.render("main.html",
                     form=True,
                     action="/blog/%s/edit" % number,
                     cancel="/blog/%s" % number,
@@ -234,12 +193,15 @@ class EditPost(BaseHandler):
                     submit="Update")
 
     def post(self, number):
+        self.redirect_if_not_logged_in()
         username = self.get_current_user()
         title = self.request.get("subject")
         blog = self.request.get("content")
-        post = Blog.get_by_id(int(number))
+        post = models.Blog.get_by_id(int(number))
 
-        if title and blog:
+        if not post or post.author.username != username:
+            self.render("error.html")
+        elif title and blog:
             post.title = title
             post.blog = blog
             post.put()
@@ -247,45 +209,58 @@ class EditPost(BaseHandler):
         else:
             error = "We need both a title and a blog in order to update this entry."
             self.render("main.html",
-                        form=True,
-                        username=username,
-                        action="/blog/%s/edit" % number,
-                        cancel="/blog/%s" % number,
-                        error=error,
-                        submit="Update")
+                    form=True,
+                    username=username,
+                    action="/blog/%s/edit" % number,
+                    cancel="/blog/%s" % number,
+                    error=error,
+                    submit="Update")
 
 class DeletePost(BaseHandler):
     def get(self, number):
         self.redirect_if_not_logged_in()
         title = self.request.get("subject")
-        blog = self.request.get("content")
-        post = Blog.get_by_id(int(number))
         username = self.get_current_user()
+        blog = self.request.get("content")
+        post = models.Blog.get_by_id(int(number))
 
-        self.render("permalink.html",
+        if not post or post.author.username != username:
+            self.render("error.html")
+        else:
+            self.render("permalink.html",
                     username=username,
                     post=post,
                     user_is_author=True,
                     modal=True)
 
     def post(self, number):
-        post = Blog.get_by_id(int(number))
-        post.delete()
-        comments = post.comments
+        self.redirect_if_not_logged_in()
+        post = models.Blog.get_by_id(int(number))
         username = self.get_current_user()
-        for comment in comments:
-            comment.delete()
-        self.render("permalink.html",
-                    username=username,
-                    post=post,
-                    user_is_author=False)
+
+        if not post or post.author.username != username:
+            self.render("error.html")
+        else:
+            post.delete()
+            comments = post.comments
+            likes = post.likes
+            username = self.get_current_user()
+            for comment in comments:
+                comment.delete()
+            for like in likes:
+                like.delete()
+            self.render("permalink.html",
+                        username=username,
+                        post=post,
+                        user_is_author=False)
 
 class NewVote(BaseHandler):
     def post(self, number, voted):
-        current_user = User.get_by("username", self.get_current_user())
-        post = Blog.get_by_id(int(number))
+        self.redirect_if_not_logged_in()
+        current_user = models.User.get_by("username", self.get_current_user())
+        post = models.Blog.get_by_id(int(number))
         comments = post.comments
-        votes = Like.count_likes(post.key().id())
+        votes = models.Like.count_likes(post.key().id())
         vote_error = ""
         has_voted_up = ""
         has_voted_down = ""
@@ -303,32 +278,32 @@ class NewVote(BaseHandler):
                         has_voted_down=has_voted_down)
         else:
             if voted == "like":
-                if Like.vote_of_post(post, current_user) == True:
+                if models.Like.vote_of_post(post, current_user) == True:
                     vote_error = "Already voted up. Cannot vote twice."
                     has_voted_up = "voted"
-                elif Like.vote_of_post(post, current_user) == False:
-                    vote = Like.gql("WHERE post=:1 AND user=:2", post, current_user).get()
+                elif models.Like.vote_of_post(post, current_user) == False:
+                    vote = models.Like.gql("WHERE post=:1 AND user=:2", post, current_user).get()
                     vote.delete()
                     time.sleep(0.2)
                     self.redirect("/blog/%s" % post.key().id())
                 else:
-                    like = Like(user=current_user, post=post, status=True)
+                    like = models.Like(user=current_user, post=post, status=True)
                     like.put()
                     time.sleep(0.2)
                     has_voted_up = "voted"
                     self.redirect("/blog/%s" % post.key().id())
 
             elif voted == "dislike":
-                if Like.vote_of_post(post, current_user) == True:
-                    vote = Like.gql("WHERE post=:1 AND user=:2", post, current_user).get()
+                if models.Like.vote_of_post(post, current_user) == True:
+                    vote = models.Like.gql("WHERE post=:1 AND user=:2", post, current_user).get()
                     vote.delete()
                     time.sleep(0.2)
                     self.redirect("/blog/%s" % post.key().id())
-                elif Like.vote_of_post(post, current_user) == False:
+                elif models.Like.vote_of_post(post, current_user) == False:
                     vote_error = "Already voted down. Cannot vote twice."
                     has_voted_down = "voted"
                 else:
-                    like = Like(user=current_user, post=post, status=False)
+                    like = models.Like(user=current_user, post=post, status=False)
                     like.put()
                     time.sleep(0.2)
                     has_voted_down = "voted"
@@ -347,17 +322,64 @@ class NewVote(BaseHandler):
 
 class NewComment(BaseHandler):
     def post(self, number):
+        self.redirect_if_not_logged_in()
         body = self.request.get("content")
-        author = User.gql("WHERE username=:1", self.get_current_user()).get()
-        post = Blog.get_by_id(int(number))
-        comments = Comment.by_post(number)
+        author = models.User.gql("WHERE username=:1", self.get_current_user()).get()
+        post = models.Blog.get_by_id(int(number))
+        comments = models.Comment.by_post(number)
         if body == "":
             self.redirect("/blog/%s?error=True" % number)
         else:
-            c = Comment(body=body, author=author, post=post)
+            c = models.Comment(body=body, author=author, post=post)
             c.put()
             time.sleep(0.1)
             self.redirect("/blog/%s" % number)
+
+class EditComment(BaseHandler):
+    def get(self, post_id, comment_id):
+        self.redirect_if_not_logged_in()
+        post = models.Blog.get_by_id(int(post_id))
+        comment = models.Comment.get_by_id(int(comment_id))
+
+        if not post or not comment:
+            self.render("error.html")
+        else:
+            username = self.get_current_user()
+            error = self.request.get("error")
+
+            if error:
+                error = "Cannot submit empty comment."
+            else:
+                error = ""
+
+            self.render_show(username=username,
+                             post=post,
+                             comment=comment,
+                             error=error)
+
+    def post(self, post_id, comment_id):
+        self.redirect_if_not_logged_in()
+        comment = models.Comment.get_by_id(int(comment_id))
+        if not comment:
+            self.render("error.html")
+        else:
+            body = self.request.get("content")
+            comment.body = body
+            comment.put()
+            time.sleep(0.2)
+            self.redirect("/blog/%s" % post_id)
+
+
+class DeleteComment(BaseHandler):
+    def post(self, post_id, comment_id):
+        self.redirect_if_not_logged_in()
+        comment = models.Comment.get_by_id(int(comment_id))
+        if comment:
+            comment.delete()
+            time.sleep(0.2)
+            self.redirect("/blog/%s" % post_id)
+        else:
+            self.render("error.html")
 
 class SignUp(BaseHandler):
     def get(self):
@@ -380,7 +402,7 @@ class SignUp(BaseHandler):
         if not signup_helper.validate_username(username):
             username_error = "Username must have 3-20 alphanumeric characters"
             no_errors = False
-        if User.gql("WHERE username=:1", username).get():
+        if models.User.gql("WHERE username=:1", username).get():
             username_error = "Username has already been taken."
             no_errors = False
         if not signup_helper.validate_password(password):
@@ -395,12 +417,13 @@ class SignUp(BaseHandler):
 
         if no_errors:
             password_digest = signup_helper.secure_str(username, password)
-            user = User(username=username, password_digest=password_digest)
+            user = models.User(username=username, password_digest=password_digest)
             user.put()
             cookie = signup_helper.secure_str(username, password)
             self.response.headers.add_header('Set-Cookie',
                                              'name={0};Path=/'
                                              .format(cookie))
+            time.sleep(0.2)
             self.redirect('/blog')
         else:
             self.render('signup_form.html',
@@ -421,7 +444,7 @@ class Login(BaseHandler):
     def post(self):
         username = self.request.get("username")
         password = self.request.get("password")
-        user = User.gql("WHERE username=:1", username).get()
+        user = models.User.gql("WHERE username=:1", username).get()
         cookie = signup_helper.secure_str(username, password)
         if user and signup_helper.validate_credentials(username,
                                                   password,
@@ -450,5 +473,7 @@ app = webapp2.WSGIApplication([('/?', Greet),
                                ('/blog/(\d+)/delete', DeletePost),
                                ('/blog/(\d+)/vote/(.+)', NewVote),
                                ('/blog/(\d+)/comment', NewComment),
+                               ('/blog/(\d+)/comment/(\d+)/edit', EditComment),
+                               ('/blog/(\d+)/comment/(\d+)/delete', DeleteComment),
                                ('/blog/logout', Logout)],
                               debug=True)
