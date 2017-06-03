@@ -57,6 +57,7 @@ go to `http://localhost:8000/datastore`
 - [x] Logged in users can edit or delete posts they themselves have created
 - [x] Users can only like posts that are not theirs and only like or dislike it once.
 - [x] Only signed-in users can post comments
+- [x] Users can edit and delete comments they have made
 
 ###### Permissions
 - [x] README has instructions on how to run the app
