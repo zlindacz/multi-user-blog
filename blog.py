@@ -239,6 +239,9 @@ class NewVote(BaseHandler):
         current_user = models.User.get_by("username",
                                           self.get_current_user())
         post = models.Blog.get_by_id(int(number))
+        if not post:
+            self.render("error.html")
+
         comments = post.comments
         votes = models.Like.count_likes(post.key().id())
         vote_error = ""
@@ -307,10 +310,9 @@ class NewComment(BaseHandler):
         author = models.User.gql("WHERE username=:1",
                                 self.get_current_user()).get()
         post = models.Blog.get_by_id(int(number))
-        comments = models.Comment.by_post(number)
         if body == "":
             self.redirect("/blog/%s?error=True" % number)
-        else:
+        elif body and author and post:
             c = models.Comment(body=body, author=author, post=post)
             c.put()
             time.sleep(0.1)
