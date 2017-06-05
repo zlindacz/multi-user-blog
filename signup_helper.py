@@ -8,20 +8,20 @@ import hashlib
 import random
 import string
 
-USERNAME_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 def validate_username(username):
+    USERNAME_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
     return username and re.match(USERNAME_RE, username)
 
-PASSWORD_RE = re.compile("^.{3,20}$")
 def validate_password(password):
+    PASSWORD_RE = re.compile("^.{3,20}$")
     return password and re.match(PASSWORD_RE, password)
 
 def password_match(password, verify):
     if password == verify:
         return True
 
-EMAIL_RE = re.compile(r"^[\S]+@[\S]+.[\S]+$")
 def validate_email(email):
+    EMAIL_RE = re.compile(r"^[\S]+@[\S]+.[\S]+$")
     return not email or EMAIL_RE.match(email)
 
 def secure_str(username, password):
